@@ -72,6 +72,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     }, 1000)
     
+    // Additional fallback - force loading to false after 3 seconds
+    setTimeout(() => {
+      console.log('FALLBACK: Force loading to false')
+      setLoading(false)
+    }, 3000)
+    
     // Check if Supabase is available
     if (!supabase) {
       console.warn('Supabase not configured, skipping auth initialization')

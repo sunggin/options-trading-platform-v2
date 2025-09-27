@@ -13,6 +13,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
   const supabaseConfigured = isSupabaseConfigured()
 
+  // TEMPORARY: Bypass authentication for all users
+  // if (true) {
+  //   return <>{children}</>
+  // }
+
   if (!supabaseConfigured) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-racing-50 to-racing-100">
