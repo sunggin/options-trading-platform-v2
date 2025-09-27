@@ -17,7 +17,7 @@ interface AuthContextType {
   session: Session | null
   profile: UserProfile | null
   loading: boolean
-  signUp: (email: string, password: string, username: string, startTradingDate: string) => Promise<{ error: any }>
+  signUp: (email: string, password: string, username: string, startTradingDate?: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
   resetPassword: (email: string) => Promise<{ error: any; success: boolean }>
@@ -114,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const signUp = async (email: string, password: string, username: string, startTradingDate: string) => {
+  const signUp = async (email: string, password: string, username: string, startTradingDate?: string) => {
     if (!supabase) {
       return { error: { message: 'Supabase not configured' } }
     }
@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       options: {
         data: {
           username: username,
-          start_trading_date: startTradingDate
+          start_trading_date: startTradingDate || ''
         }
       }
     })
