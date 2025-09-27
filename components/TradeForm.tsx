@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,6 +10,15 @@ import { useStockPrice } from '@/hooks/useStockPrice'
 import { getStockPrice } from '@/lib/stockApi'
 import { useAuth } from '@/contexts/AuthContext'
 import CSVUpload from './CSVUpload'
+
+interface UserAccount {
+  id: string
+  user_id: string
+  name: string
+  type: 'paper' | 'live'
+  created_at: string
+  updated_at: string
+}
 
 // Generate all options expiration dates (every Friday, adjusted for holidays)
 const generateOptionsExpirationDates = () => {
@@ -82,10 +91,39 @@ interface TradeFormProps {
 export default function TradeForm({ onTradeAdded }: TradeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [useCustomDate, setUseCustomDate] = useState(false)
+  const [userAccounts, setUserAccounts] = useState<UserAccount[]>([])
   const { user } = useAuth()
   
   // Generate standard options expiration dates
   const expirationDates = generateOptionsExpirationDates()
+
+  // Fetch user accounts
+  useEffect(() => {
+    if (user) {
+      fetchUserAccounts()
+    }
+  }, [user])
+
+  const fetchUserAccounts = async () => {
+    if (!user) return
+
+    try {
+      const { data, error } = await supabase
+        .from('user_accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('Error fetching user accounts:', error)
+        return
+      }
+
+      setUserAccounts(data || [])
+    } catch (error) {
+      console.error('Error fetching user accounts:', error)
+    }
+  }
 
   const {
     register,
@@ -248,11 +286,16 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
                   className="input-field text-sm py-1"
                 >
               <option value="">Select account</option>
-              <option value="SAE">SAE</option>
-              <option value="ST">ST</option>
-              <option value="ST Operating">ST Operating</option>
-              <option value="Robinhood">Robinhood</option>
-              <option value="N/A">N/A</option>
+              {userAccounts.map((account) => (
+                <option key={account.id} value={account.name}>
+                  {account.name} ({account.type === 'live' ? 'Live' : 'Paper'})
+                </option>
+              ))}
+              {userAccounts.length === 0 && (
+                <option value="" disabled>
+                  No accounts created yet - Add accounts in Dashboard
+                </option>
+              )}
             </select>
             {errors.account && (
               <p className="text-red-500 text-sm mt-1">{errors.account.message}</p>

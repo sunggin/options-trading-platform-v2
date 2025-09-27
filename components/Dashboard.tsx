@@ -5,6 +5,7 @@ import { supabase, Trade } from '@/lib/supabase'
 import { formatCurrency, formatPercentage } from '@/lib/calculations'
 import { DollarSign, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import UserAccountManager from './UserAccountManager'
 
 interface DashboardProps {
   refreshTrigger: number
@@ -412,6 +413,11 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           icon={DollarSign}
           color={stats.dollarsPerDay >= 0 ? 'green' : 'red'}
         />
+      </div>
+
+      {/* User Account Management */}
+      <div className="mt-6">
+        <UserAccountManager />
       </div>
     </div>
   )
