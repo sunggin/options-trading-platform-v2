@@ -82,7 +82,7 @@ export default function AuthForm() {
         if (error) {
           setError(error.message)
         } else {
-          setSuccess('Account created! Please check your email to verify your account.')
+          setSuccess('Account created successfully! You can now sign in.')
         }
       } else {
         const { error } = await signIn(email, password)
