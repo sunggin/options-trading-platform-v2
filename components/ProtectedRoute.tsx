@@ -13,10 +13,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
   const supabaseConfigured = isSupabaseConfigured()
 
-  // TEMPORARY: Bypass authentication for all users
-  if (true) {
-    return <>{children}</>
-  }
+  // Authentication is required for individual user accounts and data isolation
 
   if (!supabaseConfigured) {
     return (

@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(false) // Start with false to prevent loading screen
+  const [loading, setLoading] = useState(true) // Start with true for proper auth flow
   const [supabaseConfigured, setSupabaseConfigured] = useState(false)
 
   // Function to fetch user profile
@@ -66,17 +66,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     }, 5000) // 5 second timeout
     
-    // TEMPORARY: Force skip loading for debugging
+    // Quick timeout to prevent stuck loading screens
     setTimeout(() => {
-      console.log('FORCING loading to false for debugging')
-      setLoading(false)
-    }, 1000)
-    
-    // Additional fallback - force loading to false after 3 seconds
-    setTimeout(() => {
-      console.log('FALLBACK: Force loading to false')
-      setLoading(false)
-    }, 3000)
+      if (loading) {
+        console.log('Auth check timeout - allowing access')
+        setLoading(false)
+      }
+    }, 2000)
     
     // Check if Supabase is available
     if (!supabase) {
