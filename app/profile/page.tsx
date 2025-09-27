@@ -385,7 +385,16 @@ export default function ProfilePage() {
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4">
             <button
-              onClick={signOut}
+              onClick={async () => {
+                try {
+                  const result = await signOut()
+                  if (result.error) {
+                    console.error('Sign out error:', result.error)
+                  }
+                } catch (error) {
+                  console.error('Sign out failed:', error)
+                }
+              }}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
             >
               Sign Out

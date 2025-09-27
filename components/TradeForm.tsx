@@ -147,21 +147,10 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
       const cost = data.cost || 0
       
       
-      // Fetch current stock price at the moment of submission
+      // Skip stock price fetching for now to improve performance
+      // TODO: Add API keys for real-time stock prices
       let currentPrice = 0
-      if (data.ticker) {
-        try {
-          const { getStockPrice } = await import('@/lib/stockApi')
-          const priceResponse = await getStockPrice(data.ticker)
-          if (priceResponse.success && priceResponse.data) {
-            currentPrice = priceResponse.data.price
-          }
-        } catch (error) {
-          console.error('Error fetching current stock price:', error)
-          // Fallback to 0 if price fetch fails
-        }
-      }
-      console.log('Price at purchase set to current stock price at submission:', currentPrice)
+      console.log('Price at purchase set to 0 (stock price fetching disabled for performance)')
       
       // Use the unrealized P/L as entered by the user, default to 0 if not provided
       const unrealizedPl = data.unrealized_pl || 0

@@ -9,7 +9,16 @@ export default function Header() {
   const { user, profile, signOut } = useAuth()
 
   const handleSignOut = async () => {
-    await signOut()
+    try {
+      const result = await signOut()
+      if (result.error) {
+        console.error('Sign out error:', result.error)
+        alert('Failed to sign out. Please try again.')
+      }
+    } catch (error) {
+      console.error('Sign out failed:', error)
+      alert('Failed to sign out. Please try again.')
+    }
   }
 
   return (
