@@ -9,7 +9,6 @@ interface UserAccount {
   id: string
   user_id: string
   name: string
-  type: 'paper' | 'live'
   created_at: string
   updated_at: string
 }
@@ -21,8 +20,7 @@ export default function UserAccountManager() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingAccount, setEditingAccount] = useState<string | null>(null)
   const [newAccount, setNewAccount] = useState({
-    name: '',
-    type: 'paper' as 'paper' | 'live'
+    name: ''
   })
 
   useEffect(() => {
@@ -62,8 +60,7 @@ export default function UserAccountManager() {
         .from('user_accounts')
         .insert([{
           user_id: user.id,
-          name: newAccount.name.trim(),
-          type: newAccount.type
+          name: newAccount.name.trim()
         }])
         .select()
 
@@ -74,7 +71,7 @@ export default function UserAccountManager() {
       }
 
       setAccounts(prev => [...prev, ...data])
-      setNewAccount({ name: '', type: 'paper' })
+      setNewAccount({ name: '' })
       setShowAddForm(false)
     } catch (error) {
       console.error('Error adding account:', error)
@@ -158,32 +155,17 @@ export default function UserAccountManager() {
       {showAddForm && (
         <div className="bg-gray-50 p-4 rounded-lg mb-4 border">
           <h4 className="font-medium text-gray-800 mb-3">Add New Account</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Account Name
-              </label>
-              <input
-                type="text"
-                value={newAccount.name}
-                onChange={(e) => setNewAccount(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., Main Trading Account"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-racing-500 focus:border-racing-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Account Type
-              </label>
-              <select
-                value={newAccount.type}
-                onChange={(e) => setNewAccount(prev => ({ ...prev, type: e.target.value as 'paper' | 'live' }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-racing-500 focus:border-racing-500"
-              >
-                <option value="paper">Paper Trading</option>
-                <option value="live">Live Trading</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Account Name
+            </label>
+            <input
+              type="text"
+              value={newAccount.name}
+              onChange={(e) => setNewAccount(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="e.g., Main Trading Account, Roth IRA, etc."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-racing-500 focus:border-racing-500"
+            />
           </div>
           <div className="flex gap-2 mt-3">
             <button
@@ -197,7 +179,7 @@ export default function UserAccountManager() {
             <button
               onClick={() => {
                 setShowAddForm(false)
-                setNewAccount({ name: '', type: 'paper' })
+                setNewAccount({ name: '' })
               }}
               className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm flex items-center gap-1"
             >
@@ -221,7 +203,7 @@ export default function UserAccountManager() {
               className="bg-white border border-gray-200 rounded-lg p-3 flex items-center justify-between"
             >
               {editingAccount === account.id ? (
-                <div className="flex-1 flex gap-2">
+                <div className="flex-1">
                   <input
                     type="text"
                     defaultValue={account.name}
@@ -243,30 +225,13 @@ export default function UserAccountManager() {
                         setEditingAccount(null)
                       }
                     }}
-                    className="flex-1 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-racing-500 focus:border-racing-500"
+                    className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-racing-500 focus:border-racing-500"
                     autoFocus
                   />
-                  <select
-                    defaultValue={account.type}
-                    onChange={(e) => updateAccount(account.id, { type: e.target.value as 'paper' | 'live' })}
-                    className="px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-racing-500 focus:border-racing-500"
-                  >
-                    <option value="paper">Paper</option>
-                    <option value="live">Live</option>
-                  </select>
                 </div>
               ) : (
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-800">{account.name}</span>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      account.type === 'live' 
-                        ? 'bg-red-100 text-red-800' 
-                        : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {account.type === 'live' ? 'Live Trading' : 'Paper Trading'}
-                    </span>
-                  </div>
+                  <span className="font-medium text-gray-800">{account.name}</span>
                 </div>
               )}
               

@@ -15,7 +15,6 @@ interface UserAccount {
   id: string
   user_id: string
   name: string
-  type: 'paper' | 'live'
   created_at: string
   updated_at: string
 }
@@ -288,7 +287,7 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
               <option value="">Select account</option>
               {userAccounts.map((account) => (
                 <option key={account.id} value={account.name}>
-                  {account.name} ({account.type === 'live' ? 'Live' : 'Paper'})
+                  {account.name}
                 </option>
               ))}
               {userAccounts.length === 0 && (
