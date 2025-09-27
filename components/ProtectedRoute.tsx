@@ -14,9 +14,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const supabaseConfigured = isSupabaseConfigured()
 
   // TEMPORARY: Bypass authentication for all users
-  // if (true) {
-  //   return <>{children}</>
-  // }
+  if (true) {
+    return <>{children}</>
+  }
 
   if (!supabaseConfigured) {
     return (
