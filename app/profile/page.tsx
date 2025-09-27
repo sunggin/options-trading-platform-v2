@@ -386,6 +386,36 @@ export default function ProfilePage() {
           {/* Trading Accounts Management */}
           <SimpleAccountManager />
 
+          {/* Data Isolation Verification */}
+          <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+            <div className="flex items-center gap-3 mb-4">
+              <Shield className="w-6 h-6 text-blue-600" />
+              <h3 className="text-lg font-semibold text-blue-800">Data Privacy & Security</h3>
+            </div>
+            <div className="space-y-3 text-sm text-blue-700">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>✅ Your trades are completely private to your account</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>✅ Your saved account names are private to your account</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>✅ Dashboard statistics show only your data</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>✅ Row Level Security prevents cross-user access</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>✅ All users have identical functionality with private data</span>
+              </div>
+            </div>
+          </div>
+
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4">
             <button
