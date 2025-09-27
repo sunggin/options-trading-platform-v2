@@ -57,10 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    console.log('AuthContext: useEffect started')
+    console.log('AuthContext: supabase client exists:', !!supabase)
+    
     // Set a timeout to prevent infinite loading
     const timeout = setTimeout(() => {
+      console.log('Auth timeout reached, setting loading to false')
       setLoading(false)
-    }, 2000) // 2 second timeout
+    }, 5000) // 5 second timeout
     
     // Check if Supabase is available
     if (!supabase) {
