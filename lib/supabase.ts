@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kmfxuvbguyuheiquzwhp.supabase.co'
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttZnh1dmJndXl1aGVpcXV6d2hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgxNTg1NTksImV4cCI6MjA3MzczNDU1OX0.Q-EWlXjj34SXQx5xTzf8uVwXKkjfAvqE4pUz1Sp8EII'
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttZnh1dmJndXl1aGVpcXV6d2hwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODE1ODU1OSwiZXhwIjoyMDczNzM0NTU5fQ.BkOVDCJFtQfLXlvGk4n1-IYhq0OiTbK_x_IDFOMfNOc'
 
 // Only create client if we have valid credentials
 let supabase: any = null
