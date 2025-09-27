@@ -103,6 +103,18 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
     }
   }, [user])
 
+  // Refresh accounts when component becomes visible (user returns from profile page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        fetchUserAccounts()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [user])
+
   const fetchUserAccounts = async () => {
     if (!user) return
 
