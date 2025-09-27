@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { User, Copy, Check, Mail, Calendar, Shield, Lock, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
+import SimpleAccountManager from '@/components/SimpleAccountManager'
 
 export default function ProfilePage() {
   const { user, profile, signOut, updatePassword } = useAuth()
@@ -381,6 +382,9 @@ export default function ProfilePage() {
               </form>
             )}
           </div>
+
+          {/* Trading Accounts Management */}
+          <SimpleAccountManager />
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4">

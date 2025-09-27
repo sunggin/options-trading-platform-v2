@@ -91,7 +91,6 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [useCustomDate, setUseCustomDate] = useState(false)
   const [savedAccounts, setSavedAccounts] = useState<string[]>([])
-  const [showAccountManager, setShowAccountManager] = useState(false)
   const { user } = useAuth()
   
   // Generate standard options expiration dates
@@ -134,16 +133,6 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
     })
   }
 
-  const removeAccount = (accountName: string) => {
-    if (!user) return
-    
-    const key = `saved_accounts_${user.id}`
-    setSavedAccounts(prev => {
-      const updated = prev.filter(name => name !== accountName)
-      localStorage.setItem(key, JSON.stringify(updated))
-      return updated
-    })
-  }
 
   const {
     register,
@@ -307,55 +296,18 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
         <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-2">
           <div>
             <label className="form-label">Account</label>
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <input
-                  {...register('account')}
-                  type="text"
-                  placeholder="Type account name (e.g., Main Trading, Roth IRA)"
-                  className="input-field text-sm py-1 flex-1"
-                  list="account-suggestions"
-                />
-                <datalist id="account-suggestions">
-                  {savedAccounts.map((account) => (
-                    <option key={account} value={account} />
-                  ))}
-                </datalist>
-                <button
-                  type="button"
-                  onClick={() => setShowAccountManager(!showAccountManager)}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-sm"
-                  title="Manage saved accounts"
-                >
-                  ⚙️
-                </button>
-              </div>
-              
-              {showAccountManager && (
-                <div className="bg-gray-50 p-3 rounded border">
-                  <h4 className="text-sm font-medium mb-2">Saved Accounts:</h4>
-                  {savedAccounts.length === 0 ? (
-                    <p className="text-xs text-gray-500">No saved accounts yet. Type an account name above and submit a trade to save it.</p>
-                  ) : (
-                    <div className="space-y-1">
-                      {savedAccounts.map((account) => (
-                        <div key={account} className="flex items-center justify-between bg-white p-2 rounded border">
-                          <span className="text-sm">{account}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeAccount(account)}
-                            className="text-red-600 hover:text-red-800 text-xs"
-                            title="Remove account"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <input
+              {...register('account')}
+              type="text"
+              placeholder="Type account name (e.g., Main Trading, Roth IRA)"
+              className="input-field text-sm py-1"
+              list="account-suggestions"
+            />
+            <datalist id="account-suggestions">
+              {savedAccounts.map((account) => (
+                <option key={account} value={account} />
+              ))}
+            </datalist>
             {errors.account && (
               <p className="text-red-500 text-sm mt-1">{errors.account.message}</p>
             )}
