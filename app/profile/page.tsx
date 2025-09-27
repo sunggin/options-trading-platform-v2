@@ -1,7 +1,7 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { User, Copy, Check, Mail, Calendar, DollarSign, Shield, Lock, Eye, EyeOff } from 'lucide-react'
+import { User, Copy, Check, Mail, Calendar, Shield, Lock, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 
 export default function ProfilePage() {
@@ -226,28 +226,6 @@ export default function ProfilePage() {
               </p>
             </div>
 
-            {/* Trading Start Date Card */}
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
-              <div className="flex items-center gap-3 mb-4">
-                <DollarSign className="w-6 h-6 text-purple-600" />
-                <h3 className="text-lg font-semibold text-purple-800">Trading Start Date</h3>
-              </div>
-              <div className="bg-white rounded-md p-3 border border-purple-200">
-                <span className="text-sm text-purple-700">
-                  {profile?.start_trading_date ? 
-                    new Date(profile.start_trading_date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    }) : 
-                    'Not set'
-                  }
-                </span>
-              </div>
-              <p className="text-xs text-purple-500 mt-2">
-                When you started trading options
-              </p>
-            </div>
           </div>
 
           {/* Account Statistics */}
