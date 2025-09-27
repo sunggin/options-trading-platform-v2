@@ -3,7 +3,6 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { User, Copy, Check, Mail, Calendar, Shield, Lock, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
-import UserAccountManager from '@/components/UserAccountManager'
 
 export default function ProfilePage() {
   const { user, profile, signOut, updatePassword } = useAuth()
@@ -381,18 +380,6 @@ export default function ProfilePage() {
                 </div>
               </form>
             )}
-          </div>
-
-          {/* Account Management Section */}
-          <div className="bg-white rounded-lg p-6 mb-8 border border-gray-200">
-            <div className="flex items-center gap-3 mb-6">
-              <User className="w-6 h-6 text-gray-600" />
-              <h3 className="text-lg font-semibold text-gray-800">Trading Accounts</h3>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              Manage your trading account names. These will appear in the account dropdown when adding trades.
-            </p>
-            <UserAccountManager />
           </div>
 
           {/* Actions */}
