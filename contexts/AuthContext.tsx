@@ -66,6 +66,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     }, 5000) // 5 second timeout
     
+    // TEMPORARY: Force skip loading for debugging
+    setTimeout(() => {
+      console.log('FORCING loading to false for debugging')
+      setLoading(false)
+    }, 1000)
+    
     // Check if Supabase is available
     if (!supabase) {
       console.warn('Supabase not configured, skipping auth initialization')
