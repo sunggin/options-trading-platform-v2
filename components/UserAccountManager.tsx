@@ -41,12 +41,14 @@ export default function UserAccountManager() {
 
       if (error) {
         console.error('Error fetching user accounts:', error)
-        return
+        console.error('Error details:', error.message)
+        // Don't return early - still show the UI even if there's an error
       }
 
       setAccounts(data || [])
     } catch (error) {
       console.error('Error fetching user accounts:', error)
+      // Don't return early - still show the UI even if there's an error
     } finally {
       setLoading(false)
     }
@@ -127,16 +129,8 @@ export default function UserAccountManager() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="card">
-        <div className="text-center py-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-racing-600 mx-auto"></div>
-          <p className="text-gray-600 mt-2">Loading accounts...</p>
-        </div>
-      </div>
-    )
-  }
+  // Always render the component, even if loading or if there's an error
+  console.log('UserAccountManager rendering:', { loading, user: !!user, accountsCount: accounts.length })
 
   return (
     <div className="card">
@@ -150,6 +144,13 @@ export default function UserAccountManager() {
           Add Account
         </button>
       </div>
+
+      {loading && (
+        <div className="text-center py-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-racing-600 mx-auto"></div>
+          <p className="text-gray-600 mt-2">Loading accounts...</p>
+        </div>
+      )}
 
       {/* Add Account Form */}
       {showAddForm && (
@@ -189,6 +190,11 @@ export default function UserAccountManager() {
           </div>
         </div>
       )}
+
+      {/* Debug Info */}
+      <div className="text-xs text-gray-500 mb-2">
+        Debug: User={user ? 'Logged in' : 'Not logged in'}, Loading={loading ? 'Yes' : 'No'}, Accounts={accounts.length}
+      </div>
 
       {/* Accounts List */}
       <div className="space-y-2">
