@@ -91,6 +91,8 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
 
   // Fast loading - basic stats that load immediately
   const calculateBasicStats = async () => {
+    console.log('Dashboard: calculateBasicStats called, user:', user)
+    
     if (!user) {
       console.log('Dashboard: No user found, setting empty stats')
       setStats({
@@ -125,10 +127,13 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       }
 
       console.log('Dashboard: Trades fetched successfully:', trades?.length || 0, 'trades')
+      console.log('Dashboard: Raw trades data:', trades)
 
       const totalTrades = trades?.length || 0
       const openTrades = trades?.filter((t: any) => t.status === 'open').length || 0
       const closedTrades = trades?.filter((t: any) => t.status === 'closed').length || 0
+      
+      console.log('Dashboard: Calculated stats - Total:', totalTrades, 'Open:', openTrades, 'Closed:', closedTrades)
 
       // Set basic stats immediately
       setStats(prev => ({
@@ -400,6 +405,18 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
             <span className="text-sm text-blue-700 font-medium">Loading financial data...</span>
           </div>
+        </div>
+      )}
+
+      {/* Debug information - remove this after fixing */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
+          <div className="font-semibold text-yellow-800 mb-1">Debug Info:</div>
+          <div>User: {user ? `${user.email} (${user.id})` : 'Not logged in'}</div>
+          <div>Loading: {loading ? 'Yes' : 'No'}</div>
+          <div>Total Trades: {stats.totalTrades}</div>
+          <div>Open Trades: {stats.openTrades}</div>
+          <div>Closed Trades: {stats.closedTrades}</div>
         </div>
       )}
 
