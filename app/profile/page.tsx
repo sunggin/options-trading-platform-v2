@@ -438,12 +438,12 @@ export default function ProfilePage() {
             >
               Sign Out
             </button>
-            <button
-              onClick={() => window.history.back()}
-              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+            <a
+              href="/"
+              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-colors text-center inline-block"
             >
               Back to Dashboard
-            </button>
+            </a>
           </div>
         </div>
       </div>
