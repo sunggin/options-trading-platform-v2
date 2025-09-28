@@ -299,7 +299,7 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
             <input
               {...register('account')}
               type="text"
-              placeholder="Type account name (e.g., Main Trading, Roth IRA)"
+              placeholder="Type account name - Go to Profile to add/manage accounts"
               className="input-field text-sm py-1"
               list="account-suggestions"
             />
@@ -308,6 +308,9 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
                 <option key={account} value={account} />
               ))}
             </datalist>
+            <p className="text-xs text-gray-500 mt-1">
+              💡 <a href="/profile" className="text-racing-600 hover:text-racing-800 underline">Go to Profile</a> to add and manage your trading accounts
+            </p>
             {errors.account && (
               <p className="text-red-500 text-sm mt-1">{errors.account.message}</p>
             )}
