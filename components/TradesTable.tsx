@@ -5,7 +5,7 @@ import { supabase, Trade } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Edit2, Trash2, Save, X, DollarSign, TrendingUp, TrendingDown, Square, RotateCcw, Flag, ChevronDown, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
-import { getStockPrice } from '@/lib/stockApi'
+// import { getStockPrice } from '@/lib/stockApi' // Disabled for performance
 
 interface TradesTableProps {
   refreshTrigger: number
@@ -132,11 +132,12 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
     fetchTrades()
   }, [refreshTrigger])
 
-  useEffect(() => {
-    if (trades.length > 0) {
-      fetchCurrentPrices()
-    }
-  }, [trades])
+  // Disabled for performance - stock price fetching causes major slowdowns
+  // useEffect(() => {
+  //   if (trades.length > 0) {
+  //     fetchCurrentPrices()
+  //   }
+  // }, [trades])
 
   const fetchTrades = async () => {
     if (!user) {
@@ -144,10 +145,12 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
       return
     }
 
+    setLoading(true) // Set loading at start
     try {
+      // Optimize query - only select needed fields for better performance
       const { data, error } = await supabase
         .from('trades')
-        .select('*')
+        .select('id, ticker, account, trading_date, option_type, expiration_date, status, contracts, cost, strike_price, price_at_purchase, pmcc_calc, realized_pl, unrealized_pl, audited, exercised')
         .eq('user_id', user.id) // Filter by current user's ID
         .order('status', { ascending: true }) // 'open' comes before 'closed' alphabetically
         .order('trading_date', { ascending: false }) // Most recent first within each status
@@ -156,6 +159,7 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
       setTrades(data || [])
     } catch (error) {
       console.error('Error fetching trades:', error)
+      setTrades([]) // Set empty array on error
     } finally {
       setLoading(false)
     }
