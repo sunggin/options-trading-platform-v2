@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import AuthForm from './AuthForm'
 import { Loader2, AlertTriangle } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -12,6 +13,22 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
   const supabaseConfigured = isSupabaseConfigured()
+  const [forceLoading, setForceLoading] = useState(true)
+
+  // Add a safety timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('ProtectedRoute: Force loading timeout reached')
+      }
+      setForceLoading(false)
+    }, 5000) // 5 second timeout
+
+    return () => clearTimeout(timeout)
+  }, [])
+
+  // Override loading if it's been too long
+  const isLoading = loading && forceLoading
 
   // Authentication is required for individual user accounts and data isolation
 
@@ -41,7 +58,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     )
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-racing-50 to-racing-100">
         <div className="text-center">
@@ -49,6 +66,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
           <p className="text-racing-700">
             Loading...
           </p>
+          {process.env.NODE_ENV === 'development' && (
+            <p className="text-xs text-racing-500 mt-2">
+              Debug: loading={loading.toString()}, forceLoading={forceLoading.toString()}
+            </p>
+          )}
         </div>
       </div>
     )

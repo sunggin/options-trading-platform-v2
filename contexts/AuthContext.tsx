@@ -69,17 +69,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth timeout reached, setting loading to false')
       }
       setLoading(false)
-    }, 2000) // Reduced from 3 to 2 seconds
+    }, 3000) // Increased back to 3 seconds for stability
     
     // Quick timeout to prevent stuck loading screens
-    setTimeout(() => {
-      if (loading) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Auth check timeout - allowing access')
-        }
-        setLoading(false)
+    const quickTimeout = setTimeout(() => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Auth quick timeout - checking if still loading')
       }
-    }, 500) // Reduced from 1 to 0.5 seconds
+      // Don't force setLoading(false) here, let the main timeout handle it
+    }, 1000) // Increased to 1 second
     
     // Check if Supabase is available
     if (!supabase) {
@@ -133,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       clearTimeout(timeout)
+      clearTimeout(quickTimeout)
       subscription.unsubscribe()
     }
   }, [])
