@@ -558,47 +558,6 @@ export default function Analysis() {
     }
   }
 
-  const handleShareToggle = async (tradeId: string, share: boolean) => {
-    try {
-      console.log('Analysis: Toggling share for trade:', tradeId, 'to:', share)
-      
-      // Check if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        console.error('Analysis: No user found for share toggle')
-        alert('Please sign in to update trade settings.')
-        return
-      }
-
-      const { error } = await supabase
-        .from('trades')
-        .update({ share })
-        .eq('id', tradeId)
-        .eq('user_id', user.id) // Ensure user can only update their own trades
-
-      if (error) {
-        console.error('Analysis: Error updating share status:', error)
-        if (error.message.includes('column "share" does not exist')) {
-          alert('Share feature not available yet. Please run the database migration first.')
-        } else {
-          alert(`Failed to update share status: ${error.message}`)
-        }
-        return
-      }
-
-      console.log('Analysis: Share status updated successfully')
-      
-      // Update the local state
-      setTrades(prevTrades => 
-        prevTrades.map(trade => 
-          trade.id === tradeId ? { ...trade, share } : trade
-        )
-      )
-    } catch (error) {
-      console.error('Analysis: Error toggling share:', error)
-      alert(`Failed to update share status: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
-  }
 
   const renderTradeRow = (trade: Trade) => {
     const isEditing = editingField?.tradeId === trade.id
@@ -1035,18 +994,6 @@ export default function Analysis() {
           )}
         </td>
         
-        {/* Share */}
-        <td className="py-1 px-1 text-xs">
-          <div className="flex items-center justify-center">
-            <input
-              type="checkbox"
-              checked={trade.share || false}
-              onChange={(e) => handleShareToggle(trade.id, e.target.checked)}
-              className="w-4 h-4 text-racing-600 bg-gray-100 border-gray-300 rounded focus:ring-racing-500 focus:ring-2"
-              title="Share this trade on social page"
-            />
-          </div>
-        </td>
         
         {/* Actions */}
         <td className="py-1 px-1 text-xs">
@@ -1131,7 +1078,6 @@ export default function Analysis() {
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Audited</th>
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Exercised</th>
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Closed Date</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Share</th>
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Actions</th>
             </tr>
           </thead>

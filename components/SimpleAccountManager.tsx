@@ -10,13 +10,15 @@ export default function SimpleAccountManager() {
   const [newAccount, setNewAccount] = useState('')
 
   useEffect(() => {
-    if (user) {
-      loadSavedAccounts()
-    }
+    loadSavedAccounts()
   }, [user])
 
   const loadSavedAccounts = () => {
-    if (!user?.id) return
+    if (!user?.id) {
+      // If no user, try to load from a generic key or show empty
+      setSavedAccounts([])
+      return
+    }
     
     const key = `saved_accounts_${user.id}`
     const saved = localStorage.getItem(key)
@@ -62,7 +64,20 @@ export default function SimpleAccountManager() {
     })
   }
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <div className="bg-white rounded-lg p-6 border border-gray-200">
+        <div className="flex items-center gap-3 mb-6">
+          <Plus className="w-6 h-6 text-gray-600" />
+          <h3 className="text-lg font-semibold text-gray-800">Trading Accounts</h3>
+        </div>
+        
+        <div className="text-center py-6 text-gray-500">
+          <p>Please sign in to manage your trading accounts.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-white rounded-lg p-6 border border-gray-200">

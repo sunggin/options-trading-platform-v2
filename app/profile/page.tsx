@@ -143,24 +143,24 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-racing-50 to-racing-100 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen bg-gradient-to-br from-racing-50 to-racing-100 py-6">
+      <div className="container mx-auto px-4 max-w-3xl">
+        <div className="bg-white rounded-lg shadow-lg p-6">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-16 h-16 bg-racing-100 rounded-full flex items-center justify-center">
-              <User className="w-8 h-8 text-racing-600" />
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-racing-100 rounded-full flex items-center justify-center">
+              <User className="w-6 h-6 text-racing-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-racing-800">Profile</h1>
-              <p className="text-racing-600">Manage your account information</p>
+              <h1 className="text-2xl font-bold text-racing-800">Profile</h1>
+              <p className="text-racing-600 text-sm">Manage your account information</p>
             </div>
           </div>
 
           {/* User Information Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* User ID Card */}
-            <div className="bg-gradient-to-r from-racing-50 to-racing-100 rounded-lg p-6 border border-racing-200">
+            <div className="bg-gradient-to-r from-racing-50 to-racing-100 rounded-lg p-4 border border-racing-200">
               <div className="flex items-center gap-3 mb-4">
                 <Shield className="w-6 h-6 text-racing-600" />
                 <h3 className="text-lg font-semibold text-racing-800">User ID</h3>
@@ -192,7 +192,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Email Card */}
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
               <div className="flex items-center gap-3 mb-4">
                 <Mail className="w-6 h-6 text-blue-600" />
                 <h3 className="text-lg font-semibold text-blue-800">Email</h3>
@@ -208,7 +208,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Account Created Card */}
-            <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+            <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
               <div className="flex items-center gap-3 mb-4">
                 <Calendar className="w-6 h-6 text-green-600" />
                 <h3 className="text-lg font-semibold text-green-800">Member Since</h3>

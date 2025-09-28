@@ -79,7 +79,6 @@ const tradeSchema = z.object({
   strike_price: z.number().min(0, 'Strike price must be a positive number'),
   price_at_purchase: z.string().optional(),
   unrealized_pl: z.number().optional().or(z.nan().transform(() => undefined)),
-  share: z.boolean().optional(),
 })
 
 type TradeFormData = z.infer<typeof tradeSchema>
@@ -92,6 +91,7 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [useCustomDate, setUseCustomDate] = useState(false)
   const [savedAccounts, setSavedAccounts] = useState<string[]>([])
+  const [currentAccountValue, setCurrentAccountValue] = useState('')
   const { user } = useAuth()
   
   // Generate standard options expiration dates
@@ -99,13 +99,23 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
 
   // Load saved accounts from localStorage
   useEffect(() => {
-    if (user) {
-      loadSavedAccounts()
-    }
+    loadSavedAccounts()
   }, [user])
 
+  // Auto-save account when user types
+  useEffect(() => {
+    if (currentAccountValue.trim() && user) {
+      saveAccount(currentAccountValue.trim())
+    }
+  }, [currentAccountValue, user])
+
   const loadSavedAccounts = () => {
-    const key = `saved_accounts_${user?.id}`
+    if (!user?.id) {
+      setSavedAccounts([])
+      return
+    }
+    
+    const key = `saved_accounts_${user.id}`
     const saved = localStorage.getItem(key)
     if (saved) {
       try {
@@ -238,7 +248,6 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
             unrealized_pl: unrealizedPl,
             audited: false,
             exercised: false,
-            share: data.share || false
           }
       
       console.log('Inserting trade data:', tradeData)
@@ -301,18 +310,18 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
             <input
               {...register('account')}
               type="text"
-              placeholder="Type account name - Go to Profile to add/manage accounts"
+              placeholder="Type account name"
               className="input-field text-sm py-1"
               list="account-suggestions"
+              onChange={(e) => {
+                setCurrentAccountValue(e.target.value)
+              }}
             />
             <datalist id="account-suggestions">
               {savedAccounts.map((account) => (
                 <option key={account} value={account} />
               ))}
             </datalist>
-            <p className="text-xs text-gray-500 mt-1">
-              💡 <a href="/profile" className="text-racing-600 hover:text-racing-800 underline">Go to Profile</a> to add and manage your trading accounts
-            </p>
             {errors.account && (
               <p className="text-red-500 text-sm mt-1">{errors.account.message}</p>
             )}
@@ -583,17 +592,6 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
             <p className="text-sm text-gray-500 mt-1">Auto-set to today's date</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              {...register('share')}
-              type="checkbox"
-              id="share"
-              className="w-4 h-4 text-racing-600 bg-gray-100 border-gray-300 rounded focus:ring-racing-500 focus:ring-2"
-            />
-            <label htmlFor="share" className="text-sm text-gray-700 cursor-pointer">
-              Share this trade on social page
-            </label>
-          </div>
 
         </div>
 
