@@ -410,16 +410,51 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       )}
 
       {/* Debug information - remove this after fixing */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
-          <div className="font-semibold text-yellow-800 mb-1">Debug Info:</div>
-          <div>User: {user ? `${user.email} (${user.id})` : 'Not logged in'}</div>
-          <div>Loading: {loading ? 'Yes' : 'No'}</div>
-          <div>Total Trades: {stats.totalTrades}</div>
-          <div>Open Trades: {stats.openTrades}</div>
-          <div>Closed Trades: {stats.closedTrades}</div>
-        </div>
-      )}
+      <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
+        <div className="font-semibold text-yellow-800 mb-1">Dashboard Debug Info:</div>
+        <div>User: {user ? `${user.email} (${user.id})` : 'Not logged in'}</div>
+        <div>Loading: {loading ? 'Yes' : 'No'}</div>
+        <div>Total Trades: {stats.totalTrades}</div>
+        <div>Open Trades: {stats.openTrades}</div>
+        <div>Closed Trades: {stats.closedTrades}</div>
+        <div>Financial Data Loading: {financialDataLoading ? 'Yes' : 'No'}</div>
+        <div>Refresh Trigger: {refreshTrigger}</div>
+        <button 
+          onClick={async () => {
+            if (!user) return
+            console.log('Adding test trade...')
+            const { error } = await supabase
+              .from('trades')
+              .insert({
+                user_id: user.id,
+                ticker: 'TEST',
+                account: 'Test Account',
+                trading_date: new Date().toISOString().split('T')[0],
+                option_type: 'call',
+                expiration_date: '2024-12-20',
+                status: 'open',
+                contracts: 1,
+                cost: 100,
+                strike_price: 100,
+                price_at_purchase: 50,
+                audited: false,
+                exercised: false
+              })
+            if (error) {
+              console.error('Error adding test trade:', error)
+              alert('Error: ' + error.message)
+            } else {
+              console.log('Test trade added successfully')
+              alert('Test trade added! Check the trades table below.')
+              // Refresh the dashboard
+              window.location.reload()
+            }
+          }}
+          className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs"
+        >
+          Add Test Trade
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
         <StatCard
