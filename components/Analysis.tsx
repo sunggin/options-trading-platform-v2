@@ -536,6 +536,35 @@ export default function Analysis() {
     }
   }
 
+  const handleShareToggle = async (tradeId: string, share: boolean) => {
+    try {
+      console.log('Toggling share for trade:', tradeId, 'to:', share)
+      
+      const { error } = await supabase
+        .from('trades')
+        .update({ share })
+        .eq('id', tradeId)
+
+      if (error) {
+        console.error('Error updating share status:', error)
+        alert('Failed to update share status. Please try again.')
+        return
+      }
+
+      console.log('Share status updated successfully')
+      
+      // Update the local state
+      setTrades(prevTrades => 
+        prevTrades.map(trade => 
+          trade.id === tradeId ? { ...trade, share } : trade
+        )
+      )
+    } catch (error) {
+      console.error('Error toggling share:', error)
+      alert('Failed to update share status. Please try again.')
+    }
+  }
+
   const renderTradeRow = (trade: Trade) => {
     const isEditing = editingField?.tradeId === trade.id
     const isEditingField = (field: string) => isEditing && editingField?.field === field
@@ -971,6 +1000,19 @@ export default function Analysis() {
           )}
         </td>
         
+        {/* Share */}
+        <td className="py-1 px-1 text-xs">
+          <div className="flex items-center justify-center">
+            <input
+              type="checkbox"
+              checked={trade.share || false}
+              onChange={(e) => handleShareToggle(trade.id, e.target.checked)}
+              className="w-4 h-4 text-racing-600 bg-gray-100 border-gray-300 rounded focus:ring-racing-500 focus:ring-2"
+              title="Share this trade on social page"
+            />
+          </div>
+        </td>
+        
         {/* Actions */}
         <td className="py-1 px-1 text-xs">
           <div className="flex items-center gap-1">
@@ -1054,6 +1096,7 @@ export default function Analysis() {
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Audited</th>
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Exercised</th>
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Closed Date</th>
+              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Share</th>
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Actions</th>
             </tr>
           </thead>

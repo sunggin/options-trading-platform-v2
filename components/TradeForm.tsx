@@ -79,6 +79,7 @@ const tradeSchema = z.object({
   strike_price: z.number().min(0, 'Strike price must be a positive number'),
   price_at_purchase: z.string().optional(),
   unrealized_pl: z.number().optional().or(z.nan().transform(() => undefined)),
+  share: z.boolean().optional(),
 })
 
 type TradeFormData = z.infer<typeof tradeSchema>
@@ -236,7 +237,8 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
             pmcc_calc: pmccCalc,
             unrealized_pl: unrealizedPl,
             audited: false,
-            exercised: false
+            exercised: false,
+            share: data.share || false
           }
       
       console.log('Inserting trade data:', tradeData)
@@ -579,6 +581,18 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
               title="Trading date is automatically set to today's date"
             />
             <p className="text-sm text-gray-500 mt-1">Auto-set to today's date</p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              {...register('share')}
+              type="checkbox"
+              id="share"
+              className="w-4 h-4 text-racing-600 bg-gray-100 border-gray-300 rounded focus:ring-racing-500 focus:ring-2"
+            />
+            <label htmlFor="share" className="text-sm text-gray-700 cursor-pointer">
+              Share this trade on social page
+            </label>
           </div>
 
         </div>

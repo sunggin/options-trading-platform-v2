@@ -69,6 +69,12 @@ export default function Header() {
             >
               Profile
             </Link>
+            <Link 
+              href="/social"
+              className="text-base text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Social
+            </Link>
           </nav>
           
           {user && (

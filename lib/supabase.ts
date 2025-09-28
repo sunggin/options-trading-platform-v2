@@ -70,6 +70,7 @@ export interface Trade {
   priority?: boolean
   closed_date?: string
   expected_return?: number
+  share?: boolean // For social sharing
   created_at: string
   updated_at: string
 }
