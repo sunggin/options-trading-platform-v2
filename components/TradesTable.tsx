@@ -150,7 +150,7 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
       // Optimize query - only select needed fields for better performance
       const { data, error } = await supabase
         .from('trades')
-        .select('id, ticker, account, trading_date, option_type, expiration_date, status, contracts, cost, strike_price, price_at_purchase, pmcc_calc, realized_pl, unrealized_pl, audited, exercised')
+        .select('id, ticker, account, trading_date, option_type, expiration_date, status, contracts, cost, strike_price, price_at_purchase, pmcc_calc, realized_pl, unrealized_pl, audited, exercised, share')
         .eq('user_id', user.id) // Filter by current user's ID
         .order('status', { ascending: true }) // 'open' comes before 'closed' alphabetically
         .order('trading_date', { ascending: false }) // Most recent first within each status

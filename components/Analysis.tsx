@@ -247,17 +247,39 @@ export default function Analysis() {
   }, [trades])
 
   const fetchTrades = async () => {
+    setLoading(true)
     try {
+      console.log('Analysis: Starting to fetch trades...')
+      
+      // Get current user from auth context
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        console.error('Analysis: No user found')
+        setTrades([])
+        setLoading(false)
+        return
+      }
+
+      console.log('Analysis: User found:', user.id)
+
       const { data, error } = await supabase
         .from('trades')
         .select('*')
+        .eq('user_id', user.id) // Filter by current user's ID
         .order('status', { ascending: true }) // 'open' comes before 'closed' alphabetically
         .order('trading_date', { ascending: false }) // Most recent first within each status
 
-      if (error) throw error
+      if (error) {
+        console.error('Analysis: Supabase error:', error)
+        throw error
+      }
+
+      console.log('Analysis: Trades fetched successfully:', data?.length || 0, 'trades')
       setTrades(data || [])
     } catch (error) {
-      console.error('Error fetching trades:', error)
+      console.error('Analysis: Error fetching trades:', error)
+      setTrades([]) // Set empty array on error
     } finally {
       setLoading(false)
     }
