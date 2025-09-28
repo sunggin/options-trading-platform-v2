@@ -165,33 +165,34 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
     }
   }
 
-  const fetchCurrentPrices = async () => {
-    try {
-      // Get unique tickers from all trades
-      const uniqueTickers = Array.from(new Set(trades.map(trade => trade.ticker.toUpperCase())))
-      
-      // Fetch current prices for all unique tickers
-      const pricePromises = uniqueTickers.map(async (ticker) => {
-        try {
-          const result = await getStockPrice(ticker)
-          return { ticker, price: result.success ? result.data?.price || 0 : 0 }
-        } catch (error) {
-          console.error(`Error fetching price for ${ticker}:`, error)
-          return { ticker, price: 0 }
-        }
-      })
+  // Disabled for performance - stock price fetching causes major slowdowns
+  // const fetchCurrentPrices = async () => {
+  //   try {
+  //     // Get unique tickers from all trades
+  //     const uniqueTickers = Array.from(new Set(trades.map(trade => trade.ticker.toUpperCase())))
+  //     
+  //     // Fetch current prices for all unique tickers
+  //     const pricePromises = uniqueTickers.map(async (ticker) => {
+  //       try {
+  //         const result = await getStockPrice(ticker)
+  //         return { ticker, price: result.success ? result.data?.price || 0 : 0 }
+  //       } catch (error) {
+  //         console.error(`Error fetching price for ${ticker}:`, error)
+  //         return { ticker, price: 0 }
+  //       }
+  //     })
 
-      const results = await Promise.all(pricePromises)
-      const priceMap: Record<string, number> = {}
-      results.forEach(({ ticker, price }) => {
-        priceMap[ticker] = price
-      })
-      
-      setCurrentPrices(priceMap)
-    } catch (error) {
-      console.error('Error fetching current prices:', error)
-    }
-  }
+  //     const results = await Promise.all(pricePromises)
+  //     const priceMap: Record<string, number> = {}
+  //     results.forEach(({ ticker, price }) => {
+  //       priceMap[ticker] = price
+  //     })
+  //     
+  //     setCurrentPrices(priceMap)
+  //   } catch (error) {
+  //     console.error('Error fetching current prices:', error)
+  //   }
+  // }
 
   const handleStartEdit = (tradeId: string, field: string, currentValue: any) => {
     setEditingField({ tradeId, field })
