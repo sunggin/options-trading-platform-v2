@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth timeout reached, setting loading to false')
       }
       setLoading(false)
-    }, 3000) // Reduced from 5 to 3 seconds
+    }, 2000) // Reduced from 3 to 2 seconds
     
     // Quick timeout to prevent stuck loading screens
     setTimeout(() => {
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         setLoading(false)
       }
-    }, 1000) // Reduced from 2 to 1 second
+    }, 500) // Reduced from 1 to 0.5 seconds
     
     // Check if Supabase is available
     if (!supabase) {

@@ -102,9 +102,11 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         daysTradingOptions: 0,
         dollarsPerDay: 0
       })
+      setLoading(false)
       return
     }
 
+    setLoading(true) // Set loading at start
     try {
       // Optimize query - only select needed fields for stats
       const { data: trades, error } = await supabase
@@ -124,15 +126,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       const totalUnrealizedGain = trades?.reduce((sum: number, trade: any) => 
         sum + (trade.unrealized_pl || 0), 0) || 0
       
-      console.log('Dashboard calculations:', {
-        totalTrades,
-        openTrades,
-        closedTrades,
-        totalRealizedGain,
-        totalUnrealizedGain,
-        tradesWithRealizedPL: trades?.filter((t: any) => t.realized_pl).map((t: any) => ({ id: t.id, realized_pl: t.realized_pl })),
-        tradesWithUnrealizedPL: trades?.filter((t: any) => t.unrealized_pl).map((t: any) => ({ id: t.id, unrealized_pl: t.unrealized_pl }))
-      })
+      // Removed expensive console.log for performance
       
       const totalCost = trades?.reduce((sum: number, trade: any) => 
         sum + (trade.cost * trade.contracts), 0) || 0
