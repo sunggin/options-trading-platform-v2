@@ -167,26 +167,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     if (!supabase) {
+      console.error('Sign out failed: Supabase not configured')
       return { error: { message: 'Supabase not configured' } }
     }
     
     try {
-      const { error } = await supabase.auth.signOut()
+      console.log('Attempting to sign out...')
       
-      // Clear all auth state
+      // Clear all auth state first
       setUser(null)
       setSession(null)
       setProfile(null)
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Sign out successful')
+      // Then call Supabase signOut
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error('Supabase signOut error:', error)
+        return { error }
       }
       
-      return { error }
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Sign out error:', error)
+      console.log('Sign out successful')
+      
+      // Force a page reload to ensure clean state
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
       }
+      
+      return { error: null }
+    } catch (error) {
+      console.error('Sign out catch error:', error)
       return { error: { message: 'Sign out failed' } }
     }
   }

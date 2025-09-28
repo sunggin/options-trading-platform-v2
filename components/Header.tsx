@@ -10,14 +10,17 @@ export default function Header() {
 
   const handleSignOut = async () => {
     try {
+      console.log('Header: Starting sign out process...')
       const result = await signOut()
       if (result.error) {
-        console.error('Sign out error:', result.error)
-        alert('Failed to sign out. Please try again.')
+        console.error('Header: Sign out error:', result.error)
+        alert(`Failed to sign out: ${result.error.message || 'Unknown error'}`)
+      } else {
+        console.log('Header: Sign out successful')
       }
     } catch (error) {
-      console.error('Sign out failed:', error)
-      alert('Failed to sign out. Please try again.')
+      console.error('Header: Sign out failed:', error)
+      alert(`Failed to sign out: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 

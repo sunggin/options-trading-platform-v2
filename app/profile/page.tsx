@@ -421,12 +421,17 @@ export default function ProfilePage() {
             <button
               onClick={async () => {
                 try {
+                  console.log('Profile: Starting sign out process...')
                   const result = await signOut()
                   if (result.error) {
-                    console.error('Sign out error:', result.error)
+                    console.error('Profile: Sign out error:', result.error)
+                    alert(`Failed to sign out: ${result.error.message || 'Unknown error'}`)
+                  } else {
+                    console.log('Profile: Sign out successful')
                   }
                 } catch (error) {
-                  console.error('Sign out failed:', error)
+                  console.error('Profile: Sign out failed:', error)
+                  alert(`Failed to sign out: ${error instanceof Error ? error.message : 'Unknown error'}`)
                 }
               }}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
