@@ -140,13 +140,18 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
   // }, [trades])
 
   const fetchTrades = async () => {
+    console.log('TradesTable: fetchTrades called, user:', user)
+    
     if (!user) {
+      console.log('TradesTable: No user, setting loading to false')
       setLoading(false)
       return
     }
 
     setLoading(true) // Set loading at start
     try {
+      console.log('TradesTable: Fetching trades for user:', user.id)
+      
       // Optimize query - only select needed fields for better performance
       const { data, error } = await supabase
         .from('trades')
@@ -155,10 +160,16 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         .order('status', { ascending: true }) // 'open' comes before 'closed' alphabetically
         .order('trading_date', { ascending: false }) // Most recent first within each status
 
-      if (error) throw error
+      if (error) {
+        console.error('TradesTable: Supabase error:', error)
+        throw error
+      }
+      
+      console.log('TradesTable: Trades fetched successfully:', data?.length || 0, 'trades')
+      console.log('TradesTable: Raw trades data:', data)
       setTrades(data || [])
     } catch (error) {
-      console.error('Error fetching trades:', error)
+      console.error('TradesTable: Error fetching trades:', error)
       setTrades([]) // Set empty array on error
     } finally {
       setLoading(false)
@@ -939,6 +950,17 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
   if (trades.length === 0) {
     return (
       <div className="card">
+        {/* Debug information - remove this after fixing */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
+            <div className="font-semibold text-yellow-800 mb-1">TradesTable Debug Info:</div>
+            <div>User: {user ? `${user.email} (${user.id})` : 'Not logged in'}</div>
+            <div>Loading: {loading ? 'Yes' : 'No'}</div>
+            <div>Trades Count: {trades.length}</div>
+            <div>Refresh Trigger: {refreshTrigger}</div>
+          </div>
+        )}
+        
         <div className="text-center py-8">
           <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No trades yet</h3>
