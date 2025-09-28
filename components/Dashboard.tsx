@@ -5,6 +5,7 @@ import { supabase, Trade } from '@/lib/supabase'
 import { formatCurrency, formatPercentage } from '@/lib/calculations'
 import { DollarSign, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import TradesTable from '@/components/TradesTable'
 
 interface DashboardProps {
   refreshTrigger: number
@@ -499,6 +500,9 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           isLoading={financialDataLoading}
         />
       </div>
+
+      {/* Trades Table */}
+      <TradesTable refreshTrigger={refreshTrigger} />
     </div>
   )
 }
