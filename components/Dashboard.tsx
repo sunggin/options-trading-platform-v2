@@ -106,9 +106,10 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     }
 
     try {
+      // Optimize query - only select needed fields for stats
       const { data: trades, error } = await supabase
         .from('trades')
-        .select('*')
+        .select('id, status, realized_pl, unrealized_pl, cost, contracts, option_type, strike_price')
         .eq('user_id', user.id) // Filter by current user's ID
 
       if (error) throw error

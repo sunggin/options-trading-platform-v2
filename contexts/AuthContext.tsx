@@ -57,26 +57,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    console.log('AuthContext: useEffect started')
-    console.log('AuthContext: supabase client exists:', !!supabase)
+    // Only log in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('AuthContext: useEffect started')
+      console.log('AuthContext: supabase client exists:', !!supabase)
+    }
     
     // Set a timeout to prevent infinite loading
     const timeout = setTimeout(() => {
-      console.log('Auth timeout reached, setting loading to false')
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Auth timeout reached, setting loading to false')
+      }
       setLoading(false)
-    }, 5000) // 5 second timeout
+    }, 3000) // Reduced from 5 to 3 seconds
     
     // Quick timeout to prevent stuck loading screens
     setTimeout(() => {
       if (loading) {
-        console.log('Auth check timeout - allowing access')
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Auth check timeout - allowing access')
+        }
         setLoading(false)
       }
-    }, 2000)
+    }, 1000) // Reduced from 2 to 1 second
     
     // Check if Supabase is available
     if (!supabase) {
-      console.warn('Supabase not configured, skipping auth initialization')
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Supabase not configured, skipping auth initialization')
+      }
       clearTimeout(timeout)
       setLoading(false)
       return
@@ -96,11 +105,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       setLoading(false)
-    }).catch((error: any) => {
-      console.error('AuthContext: Error getting session:', error)
-      clearTimeout(timeout)
-      setLoading(false)
-    })
+        }).catch((error: any) => {
+          if (process.env.NODE_ENV === 'development') {
+            console.error('AuthContext: Error getting session:', error)
+          }
+          clearTimeout(timeout)
+          setLoading(false)
+        })
 
     // Listen for auth changes
     const {

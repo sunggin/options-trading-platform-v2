@@ -7,14 +7,21 @@ const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGc
 // Only create client if we have valid credentials
 let supabase: any = null
 
-console.log('Supabase URL:', supabaseUrl)
-console.log('Supabase Anon Key:', supabaseAnonKey ? 'Present' : 'Missing')
+// Only log in development
+if (process.env.NODE_ENV === 'development') {
+  console.log('Supabase URL:', supabaseUrl)
+  console.log('Supabase Anon Key:', supabaseAnonKey ? 'Present' : 'Missing')
+}
 
 try {
   supabase = createClient(supabaseUrl, supabaseAnonKey)
-  console.log('Supabase client created successfully with actual credentials')
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Supabase client created successfully with actual credentials')
+  }
 } catch (error) {
-  console.warn('Supabase client creation failed:', error)
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('Supabase client creation failed:', error)
+  }
 }
 
 export { supabase }
@@ -26,10 +33,13 @@ export const isSupabaseConfigured = () => {
          supabaseAnonKey && 
          supabaseAnonKey.startsWith('eyJ')
   
-  console.log('isSupabaseConfigured:', isConfigured)
-  console.log('supabase client:', supabase ? 'exists' : 'null')
-  console.log('URL:', supabaseUrl)
-  console.log('Key starts with eyJ:', supabaseAnonKey && supabaseAnonKey.startsWith('eyJ'))
+  // Only log in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('isSupabaseConfigured:', isConfigured)
+    console.log('supabase client:', supabase ? 'exists' : 'null')
+    console.log('URL:', supabaseUrl)
+    console.log('Key starts with eyJ:', supabaseAnonKey && supabaseAnonKey.startsWith('eyJ'))
+  }
   
   return isConfigured
 }

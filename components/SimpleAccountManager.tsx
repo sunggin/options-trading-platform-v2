@@ -16,13 +16,17 @@ export default function SimpleAccountManager() {
   }, [user])
 
   const loadSavedAccounts = () => {
-    const key = `saved_accounts_${user?.id}`
+    if (!user?.id) return
+    
+    const key = `saved_accounts_${user.id}`
     const saved = localStorage.getItem(key)
     if (saved) {
       try {
         setSavedAccounts(JSON.parse(saved))
       } catch (error) {
-        console.error('Error parsing saved accounts:', error)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error parsing saved accounts:', error)
+        }
         setSavedAccounts([])
       }
     }
