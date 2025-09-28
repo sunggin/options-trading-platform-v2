@@ -38,6 +38,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     dollarsPerDay: 0
   })
   const [loading, setLoading] = useState(true)
+  const [financialDataLoading, setFinancialDataLoading] = useState(false)
   const [showDateInput, setShowDateInput] = useState(false)
   const [updatingDate, setUpdatingDate] = useState(false)
 
@@ -88,7 +89,8 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     }
   }
 
-  const calculateStats = async () => {
+  // Fast loading - basic stats that load immediately
+  const calculateBasicStats = async () => {
     if (!user) {
       setStats({
         totalTrades: 0,
@@ -106,27 +108,65 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       return
     }
 
-    setLoading(true) // Set loading at start
+    setLoading(true)
     try {
-      // Optimize query - only select needed fields for stats
+      // Fast query - only get basic counts first
       const { data: trades, error } = await supabase
         .from('trades')
-        .select('id, status, realized_pl, unrealized_pl, cost, contracts, option_type, strike_price')
-        .eq('user_id', user.id) // Filter by current user's ID
+        .select('id, status')
+        .eq('user_id', user.id)
 
       if (error) throw error
 
       const totalTrades = trades?.length || 0
       const openTrades = trades?.filter((t: any) => t.status === 'open').length || 0
       const closedTrades = trades?.filter((t: any) => t.status === 'closed').length || 0
-      
+
+      // Set basic stats immediately
+      setStats(prev => ({
+        ...prev,
+        totalTrades,
+        openTrades,
+        closedTrades,
+        // Keep financial data as 0 for now, will be updated by calculateFinancialStats
+        totalRealizedGain: 0,
+        totalUnrealizedGain: 0,
+        totalCost: 0,
+        overallProfitLoss: 0,
+        totalDollarsTraded: 0,
+        daysTradingOptions: 0,
+        dollarsPerDay: 0
+      }))
+
+      setLoading(false) // Basic stats loaded, show dashboard
+
+      // Now load financial data in background
+      calculateFinancialStats()
+    } catch (error) {
+      console.error('Error calculating basic stats:', error)
+      setLoading(false)
+    }
+  }
+
+  // Slow loading - financial calculations that happen in background
+  const calculateFinancialStats = async () => {
+    if (!user) return
+
+    setFinancialDataLoading(true)
+    try {
+      // Get full financial data
+      const { data: trades, error } = await supabase
+        .from('trades')
+        .select('id, status, realized_pl, unrealized_pl, cost, contracts, option_type, strike_price')
+        .eq('user_id', user.id)
+
+      if (error) throw error
+
       const totalRealizedGain = trades?.reduce((sum: number, trade: any) => 
         sum + (trade.realized_pl || 0), 0) || 0
       
       const totalUnrealizedGain = trades?.reduce((sum: number, trade: any) => 
         sum + (trade.unrealized_pl || 0), 0) || 0
-      
-      // Removed expensive console.log for performance
       
       const totalCost = trades?.reduce((sum: number, trade: any) => 
         sum + (trade.cost * trade.contracts), 0) || 0
@@ -156,10 +196,9 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       const daysTradingOptions = startTradingDate ? calculateBusinessDays(startTradingDate, today) : 0
       const dollarsPerDay = daysTradingOptions > 0 ? overallProfitLoss / daysTradingOptions : 0
 
-      setStats({
-        totalTrades,
-        openTrades,
-        closedTrades,
+      // Update with financial data
+      setStats(prev => ({
+        ...prev,
         totalRealizedGain,
         totalUnrealizedGain,
         totalCost,
@@ -167,12 +206,17 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         totalDollarsTraded,
         daysTradingOptions,
         dollarsPerDay
-      })
+      }))
     } catch (error) {
-      console.error('Error calculating stats:', error)
+      console.error('Error calculating financial stats:', error)
     } finally {
-      setLoading(false)
+      setFinancialDataLoading(false)
     }
+  }
+
+  // Main function that triggers both
+  const calculateStats = async () => {
+    await calculateBasicStats()
   }
 
   if (loading) {
@@ -190,16 +234,18 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     title, 
     value, 
     icon: Icon, 
-    color = 'blue',
-    isPercentage = false,
-    isCount = false
-  }: { 
+    color = 'blue', 
+    isPercentage = false, 
+    isCount = false,
+    isLoading = false
+  }: {
     title: string
     value: number
     icon: any
     color?: 'blue' | 'green' | 'red' | 'gray'
     isPercentage?: boolean
     isCount?: boolean
+    isLoading?: boolean
   }) => {
     const colorClasses = {
       blue: 'bg-blue-50 text-blue-600',
@@ -209,6 +255,9 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     }
 
     const formatValue = () => {
+      if (isLoading) {
+        return '...'
+      }
       if (isCount) {
         return value.toString()
       }
@@ -221,12 +270,12 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     return (
       <div className="card p-2">
         <div className="flex items-center">
-          <div className={`p-1.5 rounded-full ${colorClasses[color]}`}>
+          <div className={`p-1.5 rounded-full ${colorClasses[color]} ${isLoading ? 'animate-pulse' : ''}`}>
             <Icon className="w-4 h-4" />
           </div>
           <div className="ml-2">
             <p className="text-xs font-medium text-gray-600">{title}</p>
-            <p className="text-sm font-semibold text-gray-900">
+            <p className={`text-sm font-semibold text-gray-900 ${isLoading ? 'animate-pulse' : ''}`}>
               {formatValue()}
             </p>
           </div>
@@ -336,6 +385,16 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         </div>
       )}
       
+      {/* Progress indicator for financial data loading */}
+      {financialDataLoading && (
+        <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+            <span className="text-sm text-blue-700 font-medium">Loading financial data...</span>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
         <StatCard
           title="Total Trades"
@@ -363,6 +422,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           value={stats.totalDollarsTraded}
           icon={DollarSign}
           color="blue"
+          isLoading={financialDataLoading}
         />
       </div>
 
@@ -372,24 +432,28 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           value={stats.totalCost}
           icon={DollarSign}
           color="gray"
+          isLoading={financialDataLoading}
         />
         <StatCard
           title="Realized P&L"
           value={stats.totalRealizedGain}
           icon={stats.totalRealizedGain >= 0 ? TrendingUp : TrendingDown}
           color={stats.totalRealizedGain >= 0 ? 'green' : 'red'}
+          isLoading={financialDataLoading}
         />
         <StatCard
           title="Unrealized P&L"
           value={stats.totalUnrealizedGain}
           icon={stats.totalUnrealizedGain >= 0 ? TrendingUp : TrendingDown}
           color={stats.totalUnrealizedGain >= 0 ? 'green' : 'red'}
+          isLoading={financialDataLoading}
         />
         <StatCard
           title="Overall P&L"
           value={stats.overallProfitLoss}
           icon={stats.overallProfitLoss >= 0 ? TrendingUp : TrendingDown}
           color={stats.overallProfitLoss >= 0 ? 'green' : 'red'}
+          isLoading={financialDataLoading}
         />
       </div>
 
@@ -400,12 +464,14 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           icon={BarChart3}
           color="blue"
           isCount={true}
+          isLoading={financialDataLoading}
         />
         <StatCard
           title="$ Per Day"
           value={stats.dollarsPerDay}
           icon={DollarSign}
           color={stats.dollarsPerDay >= 0 ? 'green' : 'red'}
+          isLoading={financialDataLoading}
         />
       </div>
     </div>
