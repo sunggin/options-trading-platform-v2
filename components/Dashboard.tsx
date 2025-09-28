@@ -92,6 +92,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
   // Fast loading - basic stats that load immediately
   const calculateBasicStats = async () => {
     if (!user) {
+      console.log('Dashboard: No user found, setting empty stats')
       setStats({
         totalTrades: 0,
         openTrades: 0,
@@ -110,13 +111,20 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
 
     setLoading(true)
     try {
+      console.log('Dashboard: Fetching trades for user:', user.id)
+      
       // Fast query - only get basic counts first
       const { data: trades, error } = await supabase
         .from('trades')
         .select('id, status')
         .eq('user_id', user.id)
 
-      if (error) throw error
+      if (error) {
+        console.error('Dashboard: Supabase error:', error)
+        throw error
+      }
+
+      console.log('Dashboard: Trades fetched successfully:', trades?.length || 0, 'trades')
 
       const totalTrades = trades?.length || 0
       const openTrades = trades?.filter((t: any) => t.status === 'open').length || 0

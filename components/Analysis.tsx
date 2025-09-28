@@ -560,20 +560,33 @@ export default function Analysis() {
 
   const handleShareToggle = async (tradeId: string, share: boolean) => {
     try {
-      console.log('Toggling share for trade:', tradeId, 'to:', share)
+      console.log('Analysis: Toggling share for trade:', tradeId, 'to:', share)
       
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.error('Analysis: No user found for share toggle')
+        alert('Please sign in to update trade settings.')
+        return
+      }
+
       const { error } = await supabase
         .from('trades')
         .update({ share })
         .eq('id', tradeId)
+        .eq('user_id', user.id) // Ensure user can only update their own trades
 
       if (error) {
-        console.error('Error updating share status:', error)
-        alert('Failed to update share status. Please try again.')
+        console.error('Analysis: Error updating share status:', error)
+        if (error.message.includes('column "share" does not exist')) {
+          alert('Share feature not available yet. Please run the database migration first.')
+        } else {
+          alert(`Failed to update share status: ${error.message}`)
+        }
         return
       }
 
-      console.log('Share status updated successfully')
+      console.log('Analysis: Share status updated successfully')
       
       // Update the local state
       setTrades(prevTrades => 
@@ -582,8 +595,8 @@ export default function Analysis() {
         )
       )
     } catch (error) {
-      console.error('Error toggling share:', error)
-      alert('Failed to update share status. Please try again.')
+      console.error('Analysis: Error toggling share:', error)
+      alert(`Failed to update share status: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
