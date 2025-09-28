@@ -169,9 +169,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!supabase) {
       return { error: { message: 'Supabase not configured' } }
     }
-    const { error } = await supabase.auth.signOut()
-    setProfile(null)
-    return { error }
+    
+    try {
+      const { error } = await supabase.auth.signOut()
+      
+      // Clear all auth state
+      setUser(null)
+      setSession(null)
+      setProfile(null)
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Sign out successful')
+      }
+      
+      return { error }
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Sign out error:', error)
+      }
+      return { error: { message: 'Sign out failed' } }
+    }
   }
 
   const resetPassword = async (email: string) => {
