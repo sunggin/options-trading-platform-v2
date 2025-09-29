@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import TradeForm from '@/components/TradeForm'
+import TradesTable from '@/components/TradesTable'
 import Dashboard from '@/components/Dashboard'
 import ProtectedRoute from '@/components/ProtectedRoute'
 
@@ -25,6 +26,7 @@ export default function Home() {
       <main className="space-y-2">
         <Dashboard refreshTrigger={refreshTrigger} />
         <TradeForm onTradeAdded={handleTradeAdded} />
+        <TradesTable refreshTrigger={refreshTrigger} />
       </main>
     </ProtectedRoute>
   )
