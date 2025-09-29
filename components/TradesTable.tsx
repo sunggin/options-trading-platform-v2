@@ -950,16 +950,6 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
   if (trades.length === 0) {
     return (
       <div className="card">
-        {/* Debug information - remove this after fixing */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
-            <div className="font-semibold text-yellow-800 mb-1">TradesTable Debug Info:</div>
-            <div>User: {user ? `${user.email} (${user.id})` : 'Not logged in'}</div>
-            <div>Loading: {loading ? 'Yes' : 'No'}</div>
-            <div>Trades Count: {trades.length}</div>
-            <div>Refresh Trigger: {refreshTrigger}</div>
-          </div>
-        )}
         
         <div className="text-center py-8">
           <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
