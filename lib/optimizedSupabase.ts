@@ -1,6 +1,15 @@
 // Optimized Supabase client with caching and performance improvements
 import { createClient } from '@supabase/supabase-js'
-import { Trade, UserProfile } from './supabase'
+import { Trade } from './supabase'
+
+// Define UserProfile interface locally since it's not exported from supabase.ts
+interface UserProfile {
+  id: string
+  email?: string
+  start_trading_date?: string
+  created_at?: string
+  updated_at?: string
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -69,7 +78,8 @@ class CacheManager {
       return
     }
 
-    for (const key of this.cache.keys()) {
+    const keys = Array.from(this.cache.keys())
+    for (const key of keys) {
       if (key.includes(pattern)) {
         this.cache.delete(key)
       }
@@ -82,7 +92,8 @@ class CacheManager {
     let validEntries = 0
     let expiredEntries = 0
 
-    for (const entry of this.cache.values()) {
+    const entries = Array.from(this.cache.values())
+    for (const entry of entries) {
       if (now > entry.expiresAt) {
         expiredEntries++
       } else {
@@ -330,15 +341,15 @@ export async function loadTradesHybrid(userId: string): Promise<{ data: Trade[],
 
   // 3. Load from database (slow)
   console.log('Trades loaded from database (slow)')
-  const result = await getUserTrades(userId)
+  const { data, error } = await getUserTrades(userId)
   
   // Save to both caches for next time
-  if (result.data) {
-    saveToLocalStorage(localStorageKey, result.data, 30 * 60 * 1000) // 30 minutes
-    cacheManager.set(cacheKey, result.data, 60 * 1000) // 1 minute
+  if (data) {
+    saveToLocalStorage(localStorageKey, data, 30 * 60 * 1000) // 30 minutes
+    cacheManager.set(cacheKey, data, 60 * 1000) // 1 minute
   }
 
-  return result
+  return { data: Array.isArray(data) ? data : [], error }
 }
 
 // Load dashboard stats with hybrid strategy
