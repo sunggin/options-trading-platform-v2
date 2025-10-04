@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, Trade } from '@/lib/supabase'
 import { formatCurrency, formatPercentage } from '@/lib/calculations'
-import { DollarSign, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
+import { DollarSign, TrendingUp, TrendingDown, BarChart3, Trash2, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface DashboardProps {
@@ -41,6 +41,8 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
   const [financialDataLoading, setFinancialDataLoading] = useState(false)
   const [showDateInput, setShowDateInput] = useState(false)
   const [updatingDate, setUpdatingDate] = useState(false)
+  const [isDeletingAll, setIsDeletingAll] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     calculateStats()
@@ -230,6 +232,70 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
   // Main function that triggers both
   const calculateStats = async () => {
     await calculateBasicStats()
+  }
+
+  // Delete all trades function
+  const deleteAllTrades = async () => {
+    if (!user) {
+      alert('You must be logged in to delete trades.')
+      return
+    }
+
+    setIsDeletingAll(true)
+    try {
+      // First, get all trade IDs for the current user
+      const { data: allTrades, error: fetchError } = await supabase
+        .from('trades')
+        .select('id')
+        .eq('user_id', user.id)
+      
+      if (fetchError) {
+        console.error('Error fetching trades:', fetchError)
+        alert(`Failed to fetch trades: ${fetchError.message}`)
+        return
+      }
+      
+      if (allTrades && allTrades.length > 0) {
+        // Delete each trade individually
+        const { error: deleteError } = await supabase
+          .from('trades')
+          .delete()
+          .in('id', allTrades.map((trade: any) => trade.id))
+        
+        if (deleteError) {
+          console.error('Error deleting trades:', deleteError)
+          alert(`Failed to delete trades: ${deleteError.message}`)
+          return
+        }
+      }
+      
+      // Reset stats to show empty state
+      setStats({
+        totalTrades: 0,
+        openTrades: 0,
+        closedTrades: 0,
+        totalRealizedGain: 0,
+        totalUnrealizedGain: 0,
+        totalCost: 0,
+        overallProfitLoss: 0,
+        totalDollarsTraded: 0,
+        daysTradingOptions: 0,
+        dollarsPerDay: 0
+      })
+      
+      // Trigger refresh
+      if (typeof window !== 'undefined' && (window as any).refreshDashboard) {
+        (window as any).refreshDashboard()
+      }
+      
+      alert(`Successfully deleted ${allTrades?.length || 0} trades!`)
+      setShowDeleteConfirm(false)
+    } catch (error) {
+      console.error('Error deleting all trades:', error)
+      alert('Failed to delete all trades. Please try again.')
+    } finally {
+      setIsDeletingAll(false)
+    }
   }
 
   if (loading) {
@@ -488,6 +554,66 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           isLoading={financialDataLoading}
         />
       </div>
+
+      {/* Delete All Trades Section */}
+      {stats.totalTrades > 0 && (
+        <div className="mt-6">
+          <div className="card">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                <h3 className="text-sm font-semibold text-red-700">Danger Zone</h3>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-xs text-gray-600">
+                Permanently delete all {stats.totalTrades} trades from your account. This action cannot be undone.
+              </p>
+              
+              {!showDeleteConfirm ? (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-4 rounded-md transition-colors flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete All Trades
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm font-medium text-red-800 mb-1">
+                      ⚠️ Are you absolutely sure?
+                    </p>
+                    <p className="text-xs text-red-700">
+                      This will permanently delete all {stats.totalTrades} trades and cannot be undone.
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      onClick={deleteAllTrades}
+                      disabled={isDeletingAll}
+                      className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm py-2 px-4 rounded-md transition-colors flex items-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      {isDeletingAll ? 'Deleting...' : 'Yes, Delete All Trades'}
+                    </button>
+                    
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      disabled={isDeletingAll}
+                      className="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 text-white text-sm py-2 px-4 rounded-md transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

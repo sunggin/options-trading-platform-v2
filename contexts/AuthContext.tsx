@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true) // Start with true for proper auth flow
-  const [supabaseConfigured, setSupabaseConfigured] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
 
   // Function to fetch user profile
   const fetchUserProfile = async (userId: string) => {
