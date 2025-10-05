@@ -12,8 +12,6 @@ interface DashboardProps {
 
 interface DashboardStats {
   totalTrades: number
-  openTrades: number
-  closedTrades: number
   totalRealizedGain: number
   totalUnrealizedGain: number
   totalCost: number
@@ -27,8 +25,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
   const { user, profile, updateStartTradingDate } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
     totalTrades: 0,
-    openTrades: 0,
-    closedTrades: 0,
     totalRealizedGain: 0,
     totalUnrealizedGain: 0,
     totalCost: 0,
@@ -99,8 +95,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       console.log('Dashboard: No user found, setting empty stats')
       setStats({
         totalTrades: 0,
-        openTrades: 0,
-        closedTrades: 0,
         totalRealizedGain: 0,
         totalUnrealizedGain: 0,
         totalCost: 0,
@@ -132,17 +126,13 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       console.log('Dashboard: Raw trades data:', trades)
 
       const totalTrades = trades?.length || 0
-      const openTrades = trades?.filter((t: any) => t.status === 'open').length || 0
-      const closedTrades = trades?.filter((t: any) => t.status === 'closed').length || 0
       
-      console.log('Dashboard: Calculated stats - Total:', totalTrades, 'Open:', openTrades, 'Closed:', closedTrades)
+      console.log('Dashboard: Calculated stats - Total:', totalTrades)
 
       // Set basic stats immediately
       setStats(prev => ({
         ...prev,
         totalTrades,
-        openTrades,
-        closedTrades,
         // Keep financial data as 0 for now, will be updated by calculateFinancialStats
         totalRealizedGain: 0,
         totalUnrealizedGain: 0,
@@ -272,8 +262,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       // Reset stats to show empty state
       setStats({
         totalTrades: 0,
-        openTrades: 0,
-        closedTrades: 0,
         totalRealizedGain: 0,
         totalUnrealizedGain: 0,
         totalCost: 0,
@@ -481,20 +469,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           value={stats.totalTrades}
           icon={BarChart3}
           color="blue"
-          isCount={true}
-        />
-        <StatCard
-          title="Open Trades"
-          value={stats.openTrades}
-          icon={TrendingUp}
-          color="blue"
-          isCount={true}
-        />
-        <StatCard
-          title="Closed Trades"
-          value={stats.closedTrades}
-          icon={BarChart3}
-          color="gray"
           isCount={true}
         />
         <StatCard
