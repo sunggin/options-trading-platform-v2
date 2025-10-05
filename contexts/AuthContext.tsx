@@ -7,6 +7,7 @@ import type { User, Session } from '@supabase/supabase-js'
 interface UserProfile {
   id: string
   email?: string
+  username?: string
   start_trading_date?: string
   created_at?: string
   updated_at?: string
@@ -17,7 +18,13 @@ interface AuthContextType {
   session: Session | null
   profile: UserProfile | null
   loading: boolean
-  updateStartTradingDate: (date: string) => Promise<{ success: boolean; error?: string }>
+  signUp: (email: string, password: string, username: string, startTradingDate?: string) => Promise<{ error: any }>
+  signIn: (email: string, password: string) => Promise<{ error: any }>
+  signOut: () => Promise<{ error: any }>
+  resetPassword: (email: string) => Promise<{ error: any; success: boolean }>
+  updateUsername: (username: string) => Promise<{ error: any; success: boolean }>
+  updateStartTradingDate: (date: string) => Promise<{ error: any; success: boolean }>
+  updatePassword: (newPassword: string) => Promise<{ error: any; success: boolean }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -83,6 +90,102 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Sign up function
+  const signUp = async (email: string, password: string, username: string, startTradingDate?: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      })
+
+      if (error) return { error }
+
+      if (data.user) {
+        // Create profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            email: email,
+            username: username,
+            start_trading_date: startTradingDate || null
+          })
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError)
+          return { error: profileError }
+        }
+      }
+
+      return { error: null }
+    } catch (error) {
+      console.error('Sign up error:', error)
+      return { error }
+    }
+  }
+
+  // Sign in function
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      return { error }
+    } catch (error) {
+      console.error('Sign in error:', error)
+      return { error }
+    }
+  }
+
+  // Sign out function
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut()
+      return { error }
+    } catch (error) {
+      console.error('Sign out error:', error)
+      return { error }
+    }
+  }
+
+  // Reset password function
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email)
+      return { error, success: !error }
+    } catch (error) {
+      console.error('Reset password error:', error)
+      return { error, success: false }
+    }
+  }
+
+  // Update username function
+  const updateUsername = async (username: string) => {
+    if (!user) {
+      return { error: 'User not authenticated', success: false }
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ username })
+        .eq('id', user.id)
+
+      if (error) {
+        console.error('Error updating username:', error)
+        return { error, success: false }
+      }
+
+      // Update local profile state
+      setProfile(prev => prev ? { ...prev, username } : null)
+      return { error: null, success: true }
+    } catch (error) {
+      console.error('Error updating username:', error)
+      return { error, success: false }
+    }
+  }
+
   // Update start trading date
   const updateStartTradingDate = async (date: string) => {
     if (!user) {
@@ -102,10 +205,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Update local profile state
       setProfile(prev => prev ? { ...prev, start_trading_date: date } : null)
-      return { success: true }
+      return { success: true, error: null }
     } catch (error) {
       console.error('Error updating start trading date:', error)
       return { success: false, error: 'An unexpected error occurred' }
+    }
+  }
+
+  // Update password function
+  const updatePassword = async (newPassword: string) => {
+    if (!user) {
+      return { error: 'User not authenticated', success: false }
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+
+      if (error) {
+        console.error('Error updating password:', error)
+        return { error, success: false }
+      }
+
+      return { error: null, success: true }
+    } catch (error) {
+      console.error('Error updating password:', error)
+      return { error, success: false }
     }
   }
 
@@ -209,7 +335,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     profile,
     loading: loading && !authChecked, // Only show loading if we haven't checked auth yet
-    updateStartTradingDate
+    signUp,
+    signIn,
+    signOut,
+    resetPassword,
+    updateUsername,
+    updateStartTradingDate,
+    updatePassword
   }
 
   return (
