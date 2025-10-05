@@ -8,7 +8,6 @@ export default function AuthForm() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -25,19 +24,7 @@ export default function AuthForm() {
 
     try {
       if (isSignUp) {
-        if (!username.trim()) {
-          setError('Username is required')
-          setLoading(false)
-          return
-        }
-        
-        if (username.length < 3) {
-          setError('Username must be at least 3 characters long')
-          setLoading(false)
-          return
-        }
-
-        const { error } = await signUp(email, password, username, '')
+        const { error } = await signUp(email, password)
         if (error) {
           setError(error.message)
         } else {
@@ -70,31 +57,6 @@ export default function AuthForm() {
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            {isSignUp && (
-              <>
-                <div>
-                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                    Username
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <UserPlus className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      id="username"
-                      name="username"
-                      type="text"
-                      autoComplete="username"
-                      required={isSignUp}
-                      className="appearance-none relative block w-full px-10 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                      placeholder="Choose a username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
             
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">

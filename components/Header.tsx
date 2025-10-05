@@ -6,7 +6,7 @@ import { LogOut, User } from 'lucide-react'
 
 
 export default function Header() {
-  const { user, profile, signOut } = useAuth()
+  const { user, signOut } = useAuth()
 
   const handleSignOut = async () => {
     try {
@@ -37,10 +37,10 @@ export default function Header() {
         </div>
         
         <div className="flex items-center gap-3">
-          {user && profile && (
+          {user && (
             <div className="flex items-center gap-2 text-base text-gray-600">
               <User className="w-4 h-4" />
-              <span>{profile.username}</span>
+              <span>{user.email?.split('@')[0] || 'User'}</span>
             </div>
           )}
           
