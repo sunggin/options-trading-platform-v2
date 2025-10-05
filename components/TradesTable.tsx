@@ -50,31 +50,21 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         
         setIsDeletingAll(true)
         try {
-          // First, get all trade IDs for the current user
-          const { data: allTrades, error: fetchError } = await supabase
-            .from('trades')
-            .select('id')
-            .eq('user_id', user.id) // Only get current user's trades
+          console.log('Starting delete all trades for user:', user.id)
           
-          if (fetchError) {
-            console.error('Error fetching trades:', fetchError)
-            alert(`Failed to fetch trades: ${fetchError.message}`)
+          // Use a simpler approach - delete all trades for the current user directly
+          const { error: deleteError } = await supabase
+            .from('trades')
+            .delete()
+            .eq('user_id', user.id) // Delete all trades for current user
+          
+          if (deleteError) {
+            console.error('Error deleting trades:', deleteError)
+            alert(`Failed to delete trades: ${deleteError.message}`)
             return
           }
           
-          if (allTrades && allTrades.length > 0) {
-            // Delete each trade individually
-            const { error: deleteError } = await supabase
-              .from('trades')
-              .delete()
-              .in('id', allTrades.map((trade: any) => trade.id))
-            
-            if (deleteError) {
-              console.error('Error deleting trades:', deleteError)
-              alert(`Failed to delete trades: ${deleteError.message}`)
-              return
-            }
-          }
+          console.log('Successfully deleted all trades')
           
           // Clear local state
           setTrades([])
@@ -88,7 +78,7 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
           alert('All trades have been deleted successfully!')
         } catch (error) {
           console.error('Error deleting all trades:', error)
-          alert('Failed to delete all trades. Please try again.')
+          alert(`Failed to delete all trades: ${error instanceof Error ? error.message : 'Unknown error'}`)
         } finally {
           setIsDeletingAll(false)
         }
