@@ -13,7 +13,7 @@ export default function AuthForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  const { signUp, signIn } = useAuth()
+  const { signUp, signIn, resetPassword } = useAuth()
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -144,7 +144,38 @@ export default function AuthForm() {
           </div>
 
 
-          <div className="text-center">
+          <div className="text-center space-y-2">
+            {!isSignUp && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!email) {
+                    setError('Please enter your email address first')
+                    return
+                  }
+                  setLoading(true)
+                  setError(null)
+                  setSuccess(null)
+                  
+                  try {
+                    const { error } = await resetPassword(email)
+                    if (error) {
+                      setError(error.message)
+                    } else {
+                      setSuccess('Password reset email sent! Check your inbox.')
+                    }
+                  } catch (err) {
+                    setError('Failed to send reset email')
+                  } finally {
+                    setLoading(false)
+                  }
+                }}
+                className="text-primary-600 hover:text-primary-500 text-sm underline"
+              >
+                Forgot Password?
+              </button>
+            )}
+            
             <button
               type="button"
               onClick={() => {
