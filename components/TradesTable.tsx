@@ -50,8 +50,6 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         
         setIsDeletingAll(true)
         try {
-          console.log('Starting delete all trades for user:', user.id)
-          console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Configured' : 'Missing')
           
           // Test connection first
           const { data: testData, error: testError } = await supabase
@@ -60,13 +58,10 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
             .eq('user_id', user.id)
           
           if (testError) {
-            console.error('Connection test failed:', testError)
             alert(`Connection failed: ${testError.message}. Please check your internet connection and try again.`)
             return
           }
-          
-          console.log('Connection test successful, found', testData?.length || 0, 'trades')
-          
+
           // Use a simpler approach - delete all trades for the current user directly
           const { error: deleteError } = await supabase
             .from('trades')
@@ -74,13 +69,11 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
             .eq('user_id', user.id) // Delete all trades for current user
           
           if (deleteError) {
-            console.error('Error deleting trades:', deleteError)
+
             alert(`Failed to delete trades: ${deleteError.message}`)
             return
           }
-          
-          console.log('Successfully deleted all trades')
-          
+
           // Clear local state
           setTrades([])
           setCurrentPrices({})
@@ -92,7 +85,7 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
           
           alert('All trades have been deleted successfully!')
         } catch (error) {
-          console.error('Error deleting all trades:', error)
+
           if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
             alert('Network error: Unable to connect to the server. Please check your internet connection and try again.')
           } else {
@@ -149,18 +142,16 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
   // }, [trades])
 
   const fetchTrades = async () => {
-    console.log('TradesTable: fetchTrades called, user:', user)
-    
+
     if (!user) {
-      console.log('TradesTable: No user, setting loading to false')
+
       setLoading(false)
       return
     }
 
     setLoading(true) // Set loading at start
     try {
-      console.log('TradesTable: Fetching trades for user:', user.id)
-      
+
       // Optimize query - only select needed fields for better performance
       const { data, error } = await supabase
         .from('trades')
@@ -170,15 +161,13 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         .order('trading_date', { ascending: false }) // Most recent first within each status
 
       if (error) {
-        console.error('TradesTable: Supabase error:', error)
+
         throw error
       }
-      
-      console.log('TradesTable: Trades fetched successfully:', data?.length || 0, 'trades')
-      console.log('TradesTable: Raw trades data:', data)
+
       setTrades(data || [])
     } catch (error) {
-      console.error('TradesTable: Error fetching trades:', error)
+
       setTrades([]) // Set empty array on error
     } finally {
       setLoading(false)
@@ -197,7 +186,6 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
   //         const result = await getStockPrice(ticker)
   //         return { ticker, price: result.success ? result.data?.price || 0 : 0 }
   //       } catch (error) {
-  //         console.error(`Error fetching price for ${ticker}:`, error)
   //         return { ticker, price: 0 }
   //       }
   //     })
@@ -210,7 +198,6 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
   //     
   //     setCurrentPrices(priceMap)
   //   } catch (error) {
-  //     console.error('Error fetching current prices:', error)
   //   }
   // }
 
@@ -240,18 +227,15 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         updateValue = editValue === 'true'
       }
 
-      console.log('Updating field:', field, 'to:', updateValue, 'for trade:', tradeId)
-
       // Check authentication first
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       if (authError) {
-        console.error('Authentication error:', authError)
+
         throw new Error(`Authentication failed: ${authError.message}`)
       }
       if (!user) {
         throw new Error('User not authenticated')
       }
-      console.log('User authenticated:', user.id)
 
       // Get the current trade to check option type
       const currentTrade = trades.find(t => t.id === tradeId)
@@ -267,7 +251,7 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         if (optionType === 'Call option' && contracts > 0) {
           const pmccCalc = strikePrice + (cost / contracts / 100)
           updateData.pmcc_calc = pmccCalc
-          console.log('Auto-calculated PMCC:', pmccCalc, 'for Call option - strike:', strikePrice, 'cost:', cost, 'contracts:', contracts)
+
         } else {
           updateData.pmcc_calc = null
         }
@@ -287,17 +271,9 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
           if (denominator > 0) {
             const expectedReturn = ((realizedPl + unrealizedPl) / denominator) * 100
             updateData.expected_return = expectedReturn
-            console.log('Auto-calculated Expected Return:', expectedReturn.toFixed(2) + '%', 'for', optionType, '- realized:', realizedPl, 'unrealized:', unrealizedPl, 'strike:', strikePrice, 'contracts:', contracts)
           }
         }
       }
-
-      console.log('Sending update to Supabase:', {
-        table: 'trades',
-        data: updateData,
-        tradeId: tradeId,
-        user: user.id
-      })
 
       const { error } = await supabase
         .from('trades')
@@ -305,17 +281,10 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         .eq('id', tradeId)
 
       if (error) {
-        console.error('Supabase error:', error)
-        console.error('Supabase error details:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        })
+
         throw error
       }
 
-      console.log('Field updated successfully')
       setEditingField(null)
       setEditValue('')
       fetchTrades()
@@ -324,16 +293,7 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         (window as any).refreshDashboard()
       }
     } catch (error) {
-      console.error('Error updating field:', error)
-      console.error('Error details:', {
-        name: error instanceof Error ? error.name : 'Unknown',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        field: editingField?.field,
-        value: editValue,
-        tradeId: editingField?.tradeId
-      })
-      
+
       let errorMessage = 'Unknown error'
       if (error instanceof Error) {
         errorMessage = error.message
@@ -367,7 +327,7 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
       if (error) throw error
       fetchTrades()
     } catch (error) {
-      console.error('Error deleting trade:', error)
+
       alert('Failed to delete trade. Please try again.')
     }
   }
@@ -410,18 +370,16 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         (window as any).refreshDashboard()
       }
     } catch (error) {
-      console.error(`Error updating ${field}:`, error)
+
       alert(`Failed to update ${field}`)
     }
   }
 
-
   const handleCloseTrade = async (tradeId: string) => {
     try {
-      console.log('Closing trade:', tradeId)
+
       const today = new Date().toISOString().split('T')[0] // Get today's date in YYYY-MM-DD format
-      console.log('Setting closed date to:', today)
-      
+
       const { error } = await supabase
         .from('trades')
         .update({ 
@@ -431,26 +389,24 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         .eq('id', tradeId)
 
       if (error) {
-        console.error('Supabase error:', error)
+
         throw error
       }
-      
-      console.log('Trade closed successfully')
+
       fetchTrades()
       // Trigger dashboard refresh
       if (typeof window !== 'undefined' && (window as any).refreshDashboard) {
         (window as any).refreshDashboard()
       }
     } catch (error) {
-      console.error('Error closing trade:', error)
+
       alert(`Failed to close trade: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
   const handleReopenTrade = async (tradeId: string) => {
     try {
-      console.log('Reopening trade:', tradeId)
-      
+
       const { error } = await supabase
         .from('trades')
         .update({ 
@@ -460,18 +416,17 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         .eq('id', tradeId)
 
       if (error) {
-        console.error('Supabase error:', error)
+
         throw error
       }
-      
-      console.log('Trade reopened successfully')
+
       fetchTrades()
       // Trigger dashboard refresh
       if (typeof window !== 'undefined' && (window as any).refreshDashboard) {
         (window as any).refreshDashboard()
       }
     } catch (error) {
-      console.error('Error reopening trade:', error)
+
       alert(`Failed to reopen trade: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -969,7 +924,7 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
           <button 
             onClick={async () => {
               if (!user) return
-              console.log('Adding test trade...')
+
               const { error } = await supabase
                 .from('trades')
                 .insert({
@@ -988,10 +943,10 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
                   exercised: false
                 })
               if (error) {
-                console.error('Error adding test trade:', error)
+
                 alert('Error: ' + error.message)
               } else {
-                console.log('Test trade added successfully')
+
                 alert('Test trade added! Refreshing...')
                 fetchTrades()
               }
