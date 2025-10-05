@@ -159,16 +159,17 @@ export default function AuthForm() {
                   setSuccess(null)
                   
                   try {
-                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                      redirectTo: `${window.location.origin}/reset-password`
-                    })
+                    // Try without redirectTo first (uses default Supabase behavior)
+                    const { error } = await supabase.auth.resetPasswordForEmail(email)
                     if (error) {
-                      setError(error.message)
+                      console.error('Password reset error:', error)
+                      setError(`Password reset failed: ${error.message}`)
                     } else {
-                      setSuccess('Password reset email sent! Check your inbox.')
+                      setSuccess('Password reset email sent! Check your inbox and spam folder.')
                     }
                   } catch (err) {
-                    setError('Failed to send reset email')
+                    console.error('Password reset exception:', err)
+                    setError('Failed to send reset email. Please try again.')
                   } finally {
                     setLoading(false)
                   }
