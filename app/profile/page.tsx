@@ -5,8 +5,22 @@ import { User, Copy, Check, Mail, Calendar, Shield, Lock, Eye, EyeOff } from 'lu
 import { useState } from 'react'
 
 export default function ProfilePage() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, updatePassword } = useAuth()
   const [copied, setCopied] = useState(false)
+  const [showPasswordForm, setShowPasswordForm] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  })
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -16,6 +30,94 @@ export default function ProfilePage() {
     } catch (err) {
       console.error('Failed to copy: ', err)
     }
+  }
+
+  const handlePasswordChange = (field: string, value: string) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+    setPasswordError('')
+    setPasswordSuccess('')
+  }
+
+  const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }))
+  }
+
+  const validatePassword = (password: string) => {
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters long'
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+      return 'Password must contain at least one lowercase letter'
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+      return 'Password must contain at least one uppercase letter'
+    }
+    if (!/(?=.*\d)/.test(password)) {
+      return 'Password must contain at least one number'
+    }
+    return null
+  }
+
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPasswordError('')
+    setPasswordSuccess('')
+
+    // Validation
+    if (!passwordData.newPassword) {
+      setPasswordError('New password is required')
+      return
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match')
+      return
+    }
+
+    const passwordValidation = validatePassword(passwordData.newPassword)
+    if (passwordValidation) {
+      setPasswordError(passwordValidation)
+      return
+    }
+
+    setIsUpdatingPassword(true)
+
+    try {
+      const result = await updatePassword(passwordData.newPassword)
+      
+      if (result.success) {
+        setPasswordSuccess('Password updated successfully!')
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        })
+        setShowPasswordForm(false)
+      } else {
+        setPasswordError(result.error?.message || 'Failed to update password')
+      }
+    } catch (error) {
+      setPasswordError('An unexpected error occurred')
+    } finally {
+      setIsUpdatingPassword(false)
+    }
+  }
+
+  const resetPasswordForm = () => {
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    })
+    setPasswordError('')
+    setPasswordSuccess('')
+    setShowPasswordForm(false)
   }
 
 
@@ -150,6 +252,107 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Password Update Section */}
+          <div className="bg-white rounded-lg p-6 mb-8 border border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Lock className="w-6 h-6 text-gray-600" />
+                <h3 className="text-lg font-semibold text-gray-800">Password & Security</h3>
+              </div>
+              <button
+                onClick={() => setShowPasswordForm(!showPasswordForm)}
+                className="bg-racing-600 hover:bg-racing-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                {showPasswordForm ? 'Cancel' : 'Change Password'}
+              </button>
+            </div>
+
+            {showPasswordForm && (
+              <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                {/* New Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPasswords.new ? 'text' : 'password'}
+                      value={passwordData.newPassword}
+                      onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-500 focus:border-racing-500 pr-10"
+                      placeholder="Enter your new password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility('new')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Must be at least 8 characters with uppercase, lowercase, and number
+                  </p>
+                </div>
+
+                {/* Confirm New Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPasswords.confirm ? 'text' : 'password'}
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-racing-500 focus:border-racing-500 pr-10"
+                      placeholder="Confirm your new password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility('confirm')}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Error/Success Messages */}
+                {passwordError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-sm text-red-600">{passwordError}</p>
+                  </div>
+                )}
+
+                {passwordSuccess && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <p className="text-sm text-green-600">{passwordSuccess}</p>
+                  </div>
+                )}
+
+                {/* Form Actions */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={isUpdatingPassword}
+                    className="flex-1 bg-racing-600 hover:bg-racing-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetPasswordForm}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
 
           {/* Data Isolation Verification */}
           <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
