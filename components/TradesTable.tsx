@@ -51,6 +51,21 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
         setIsDeletingAll(true)
         try {
           console.log('Starting delete all trades for user:', user.id)
+          console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Configured' : 'Missing')
+          
+          // Test connection first
+          const { data: testData, error: testError } = await supabase
+            .from('trades')
+            .select('count', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+          
+          if (testError) {
+            console.error('Connection test failed:', testError)
+            alert(`Connection failed: ${testError.message}. Please check your internet connection and try again.`)
+            return
+          }
+          
+          console.log('Connection test successful, found', testData?.length || 0, 'trades')
           
           // Use a simpler approach - delete all trades for the current user directly
           const { error: deleteError } = await supabase
@@ -78,7 +93,11 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
           alert('All trades have been deleted successfully!')
         } catch (error) {
           console.error('Error deleting all trades:', error)
-          alert(`Failed to delete all trades: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+            alert('Network error: Unable to connect to the server. Please check your internet connection and try again.')
+          } else {
+            alert(`Failed to delete all trades: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          }
         } finally {
           setIsDeletingAll(false)
         }
