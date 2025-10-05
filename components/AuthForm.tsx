@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 import { Eye, EyeOff, Mail, Lock, UserPlus, LogIn } from 'lucide-react'
 
 export default function AuthForm() {
@@ -158,7 +159,9 @@ export default function AuthForm() {
                   setSuccess(null)
                   
                   try {
-                    const { error } = await resetPassword(email)
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/reset-password`
+                    })
                     if (error) {
                       setError(error.message)
                     } else {
