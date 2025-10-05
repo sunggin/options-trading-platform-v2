@@ -22,7 +22,7 @@ interface DashboardStats {
 }
 
 export default function OptimizedDashboard({ refreshTrigger }: DashboardProps) {
-  const { user, profile, updateStartTradingDate } = useAuth()
+  const { user } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
     total_trades: 0,
     open_trades: 0,
@@ -113,23 +113,6 @@ export default function OptimizedDashboard({ refreshTrigger }: DashboardProps) {
     }
   }
 
-  // Function to handle updating start trading date
-  const handleUpdateStartDate = async (newDate: string) => {
-    if (!newDate) return
-    
-    try {
-      const result = await updateStartTradingDate(newDate)
-      if (result.success) {
-        // Invalidate cache to refresh stats
-        invalidateTradesCache(user?.id || '')
-        loadStats()
-      } else {
-        console.error('Failed to update start trading date:', result.error)
-      }
-    } catch (error) {
-      console.error('Error updating start trading date:', error)
-    }
-  }
 
   // Function to calculate business days between two dates
   const calculateBusinessDays = (startDate: string, endDate: string): number => {
@@ -225,7 +208,7 @@ export default function OptimizedDashboard({ refreshTrigger }: DashboardProps) {
   }
 
   const today = new Date().toISOString().split('T')[0]
-  const startTradingDate = profile?.start_trading_date || ''
+  const startTradingDate = '' // Simplified - no start date tracking
   const daysTradingOptions = startTradingDate ? calculateBusinessDays(startTradingDate, today) : 0
   const dollarsPerDay = daysTradingOptions > 0 ? stats.overall_profit_loss / daysTradingOptions : 0
 
@@ -324,24 +307,6 @@ export default function OptimizedDashboard({ refreshTrigger }: DashboardProps) {
               </p>
             </div>
             
-            <div className="p-4 bg-racing-50 border border-racing-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-racing-800 mb-1">
-                    Set Your Start Trading Date
-                  </h3>
-                  <p className="text-xs text-racing-600">
-                    This helps calculate your trading performance metrics
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleUpdateStartDate(new Date().toISOString().split('T')[0])}
-                  className="btn-primary text-sm py-1 px-2"
-                >
-                  Set Date
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>

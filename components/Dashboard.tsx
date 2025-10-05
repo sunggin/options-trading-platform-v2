@@ -22,7 +22,7 @@ interface DashboardStats {
 }
 
 export default function Dashboard({ refreshTrigger }: DashboardProps) {
-  const { user, profile, updateStartTradingDate } = useAuth()
+  const { user } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
     totalTrades: 0,
     totalRealizedGain: 0,
@@ -35,14 +35,12 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
   })
   const [loading, setLoading] = useState(true)
   const [financialDataLoading, setFinancialDataLoading] = useState(false)
-  const [showDateInput, setShowDateInput] = useState(false)
-  const [updatingDate, setUpdatingDate] = useState(false)
   const [isDeletingAll, setIsDeletingAll] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     calculateStats()
-  }, [refreshTrigger, profile?.start_trading_date])
+  }, [refreshTrigger])
 
   // Function to calculate business days between two dates
   const calculateBusinessDays = (startDate: string, endDate: string): number => {
@@ -68,24 +66,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     return count
   }
 
-  // Function to handle updating start trading date
-  const handleUpdateStartDate = async (newDate: string) => {
-    if (!newDate) return
-    
-    setUpdatingDate(true)
-    try {
-      const result = await updateStartTradingDate(newDate)
-      if (result.success) {
-        setShowDateInput(false)
-      } else {
-        console.error('Failed to update start trading date:', result.error)
-      }
-    } catch (error) {
-      console.error('Error updating start trading date:', error)
-    } finally {
-      setUpdatingDate(false)
-    }
-  }
 
   // Fast loading - basic stats that load immediately
   const calculateBasicStats = async () => {
@@ -195,11 +175,9 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         return sum
       }, 0) || 0
 
-      // Calculate Days Trading Options and $ Per Day
-      const today = new Date().toISOString().split('T')[0]
-      const startTradingDate = profile?.start_trading_date || ''
-      const daysTradingOptions = startTradingDate ? calculateBusinessDays(startTradingDate, today) : 0
-      const dollarsPerDay = daysTradingOptions > 0 ? overallProfitLoss / daysTradingOptions : 0
+      // Calculate Days Trading Options and $ Per Day (simplified without start date)
+      const daysTradingOptions = 0 // Simplified - no start date tracking
+      const dollarsPerDay = 0 // Simplified - no start date tracking
 
       // Update with financial data
       setStats(prev => ({
@@ -367,43 +345,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
               </p>
             </div>
             
-            <div className="p-4 bg-racing-50 border border-racing-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-racing-800 mb-1">
-                    Set Your Start Trading Date
-                  </h3>
-                  <p className="text-xs text-racing-600">
-                    This helps calculate your trading performance metrics
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowDateInput(true)}
-                  className="btn-primary text-sm py-1 px-2"
-                >
-                  Set Date
-                </button>
-              </div>
-              {showDateInput && (
-                <div className="mt-3 flex gap-2">
-                  <input
-                    type="date"
-                    value={profile?.start_trading_date || ''}
-                    onChange={(e) => handleUpdateStartDate(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    className="input-field text-sm py-1"
-                    disabled={updatingDate}
-                  />
-                  <button
-                    onClick={() => setShowDateInput(false)}
-                    className="btn-secondary text-sm py-1 px-2"
-                    disabled={updatingDate}
-                  >
-                    {updatingDate ? 'Updating...' : 'Cancel'}
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>
@@ -414,43 +355,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     <div className="mb-4">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-base font-semibold">Trading Dashboard</h2>
-        <button
-          onClick={() => setShowDateInput(!showDateInput)}
-          className="text-xs text-racing-600 hover:text-racing-800 underline"
-        >
-          {showDateInput ? 'Hide' : (profile?.start_trading_date ? 'Update' : 'Set')} Start Date
-        </button>
       </div>
-
-      {showDateInput && (
-        <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            When did you start trading options?
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="date"
-              value={profile?.start_trading_date || ''}
-              onChange={(e) => handleUpdateStartDate(e.target.value)}
-              className="input-field text-sm py-1"
-              max={new Date().toISOString().split('T')[0]}
-              disabled={updatingDate}
-            />
-            <button
-              onClick={() => setShowDateInput(false)}
-              className="btn-secondary text-sm py-1 px-2"
-              disabled={updatingDate}
-            >
-              {updatingDate ? 'Updating...' : 'Cancel'}
-            </button>
-          </div>
-          {profile?.start_trading_date && (
-            <p className="text-xs text-gray-600 mt-1">
-              Trading for {stats.daysTradingOptions} business days
-            </p>
-          )}
-        </div>
-      )}
       
       {/* Progress indicator for financial data loading */}
       {financialDataLoading && (
