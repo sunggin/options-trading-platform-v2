@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react'
 import { supabase, Trade } from '@/lib/supabase'
 import { formatCurrency, formatPercentage } from '@/lib/calculations'
-import { DollarSign, TrendingUp, TrendingDown, BarChart3, Trash2, AlertTriangle, Edit2, Save, X, Flag } from 'lucide-react'
+import { DollarSign, TrendingUp, TrendingDown, BarChart3, Trash2, AlertTriangle, Edit2, Save, X, Flag, Upload } from 'lucide-react'
 import { format } from 'date-fns'
 import { getStockPrice } from '@/lib/stockApi'
 import { useAuth } from '@/contexts/AuthContext'
 import TradeForm from '@/components/TradeForm'
+import CSVUpload from '@/components/CSVUpload'
+import BulkUpload from '@/components/BulkUpload'
 
 interface DashboardProps {
   refreshTrigger: number
@@ -1206,6 +1208,39 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           )}
         </div>
       )}
+
+      {/* CSV and Bulk Upload Section */}
+      <div className="mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* CSV Upload */}
+          <div className="card">
+            <div className="flex items-center gap-2 mb-4">
+              <Upload className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-800">CSV Upload</h3>
+            </div>
+            <CSVUpload onUploadComplete={() => {
+              calculateStats()
+              if (typeof window !== 'undefined' && (window as any).refreshDashboard) {
+                (window as any).refreshDashboard()
+              }
+            }} />
+          </div>
+
+          {/* Bulk Upload */}
+          <div className="card">
+            <div className="flex items-center gap-2 mb-4">
+              <Upload className="w-5 h-5 text-green-600" />
+              <h3 className="text-lg font-semibold text-gray-800">Bulk Upload</h3>
+            </div>
+            <BulkUpload onUploadComplete={() => {
+              calculateStats()
+              if (typeof window !== 'undefined' && (window as any).refreshDashboard) {
+                (window as any).refreshDashboard()
+              }
+            }} />
+          </div>
+        </div>
+      </div>
 
       {/* Danger Zone - Delete All Trades Section */}
       {stats.totalTrades > 0 && (
