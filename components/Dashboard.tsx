@@ -65,6 +65,9 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
   const [filterAudited, setFilterAudited] = useState<string>('all')
   const [filterExercised, setFilterExercised] = useState<string>('all')
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false)
+  const [savedFilters, setSavedFilters] = useState<Array<{name: string, filters: any}>>([])
+  const [showSaveFilterModal, setShowSaveFilterModal] = useState<boolean>(false)
+  const [newFilterName, setNewFilterName] = useState<string>('')
 
   useEffect(() => {
     calculateStats()
@@ -75,6 +78,18 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       fetchCurrentPrices()
     }
   }, [trades])
+
+  // Load saved filters from localStorage on component mount
+  useEffect(() => {
+    const saved = localStorage.getItem('dashboard-saved-filters')
+    if (saved) {
+      try {
+        setSavedFilters(JSON.parse(saved))
+      } catch (error) {
+        console.error('Error loading saved filters:', error)
+      }
+    }
+  }, [])
 
   // Function to calculate business days between two dates
   const calculateBusinessDays = (startDate: string, endDate: string): number => {
@@ -393,6 +408,81 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     if (filterAudited !== 'all') count++
     if (filterExercised !== 'all') count++
     return count
+  }
+
+  // Filter management functions
+  const getCurrentFilters = () => {
+    return {
+      filterStatus,
+      filterAccount,
+      filterTicker,
+      filterOptionType,
+      filterTradingDateFrom,
+      filterTradingDateTo,
+      filterExpirationDateFrom,
+      filterExpirationDateTo,
+      filterStrikePriceMin,
+      filterStrikePriceMax,
+      filterCostMin,
+      filterCostMax,
+      filterRealizedPlMin,
+      filterRealizedPlMax,
+      filterUnrealizedPlMin,
+      filterUnrealizedPlMax,
+      filterAudited,
+      filterExercised
+    }
+  }
+
+  const saveCurrentFilters = () => {
+    if (!newFilterName.trim()) {
+      alert('Please enter a name for your filter')
+      return
+    }
+
+    const currentFilters = getCurrentFilters()
+    const newSavedFilter = {
+      name: newFilterName.trim(),
+      filters: currentFilters
+    }
+
+    const updatedSavedFilters = [...savedFilters, newSavedFilter]
+    setSavedFilters(updatedSavedFilters)
+    localStorage.setItem('dashboard-saved-filters', JSON.stringify(updatedSavedFilters))
+    
+    setNewFilterName('')
+    setShowSaveFilterModal(false)
+    alert(`Filter "${newFilterName.trim()}" saved successfully!`)
+  }
+
+  const loadSavedFilter = (savedFilter: {name: string, filters: any}) => {
+    const { filters } = savedFilter
+    setFilterStatus(filters.filterStatus || 'all')
+    setFilterAccount(filters.filterAccount || 'all')
+    setFilterTicker(filters.filterTicker || '')
+    setFilterOptionType(filters.filterOptionType || 'all')
+    setFilterTradingDateFrom(filters.filterTradingDateFrom || '')
+    setFilterTradingDateTo(filters.filterTradingDateTo || '')
+    setFilterExpirationDateFrom(filters.filterExpirationDateFrom || '')
+    setFilterExpirationDateTo(filters.filterExpirationDateTo || '')
+    setFilterStrikePriceMin(filters.filterStrikePriceMin || '')
+    setFilterStrikePriceMax(filters.filterStrikePriceMax || '')
+    setFilterCostMin(filters.filterCostMin || '')
+    setFilterCostMax(filters.filterCostMax || '')
+    setFilterRealizedPlMin(filters.filterRealizedPlMin || '')
+    setFilterRealizedPlMax(filters.filterRealizedPlMax || '')
+    setFilterUnrealizedPlMin(filters.filterUnrealizedPlMin || '')
+    setFilterUnrealizedPlMax(filters.filterUnrealizedPlMax || '')
+    setFilterAudited(filters.filterAudited || 'all')
+    setFilterExercised(filters.filterExercised || 'all')
+  }
+
+  const deleteSavedFilter = (filterName: string) => {
+    if (confirm(`Are you sure you want to delete the saved filter "${filterName}"?`)) {
+      const updatedSavedFilters = savedFilters.filter(f => f.name !== filterName)
+      setSavedFilters(updatedSavedFilters)
+      localStorage.setItem('dashboard-saved-filters', JSON.stringify(updatedSavedFilters))
+    }
   }
 
   const handleStartEdit = (tradeId: string, field: string, currentValue: any) => {
@@ -776,6 +866,38 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                     Clear All
                   </button>
                 )}
+                {getActiveFilterCount() > 0 && (
+                  <button
+                    onClick={() => setShowSaveFilterModal(true)}
+                    className="text-sm text-green-600 hover:text-green-800"
+                  >
+                    Save Filters
+                  </button>
+                )}
+                {savedFilters.length > 0 && (
+                  <div className="relative">
+                    <select
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const selectedFilter = savedFilters.find(f => f.name === e.target.value)
+                          if (selectedFilter) {
+                            loadSavedFilter(selectedFilter)
+                          }
+                        }
+                        e.target.value = '' // Reset select
+                      }}
+                      className="text-sm border border-gray-300 rounded px-2 py-1"
+                      defaultValue=""
+                    >
+                      <option value="">Load Saved Filter</option>
+                      {savedFilters.map((filter) => (
+                        <option key={filter.name} value={filter.name}>
+                          {filter.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -917,6 +1039,49 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
               )}
             </div>
           </div>
+
+          {/* Save Filter Modal */}
+          {showSaveFilterModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-96 max-w-full mx-4">
+                <h3 className="text-lg font-semibold mb-4">Save Current Filters</h3>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Filter Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newFilterName}
+                    onChange={(e) => setNewFilterName(e.target.value)}
+                    placeholder="Enter a name for your filter"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        saveCurrentFilters()
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={saveCurrentFilters}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors"
+                  >
+                    Save Filter
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSaveFilterModal(false)
+                      setNewFilterName('')
+                    }}
+                    className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Analysis Table */}
           {(() => {
