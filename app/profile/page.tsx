@@ -385,7 +385,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <button
               onClick={async () => {
                 try {
