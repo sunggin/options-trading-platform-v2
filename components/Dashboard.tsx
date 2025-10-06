@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, Trade } from '@/lib/supabase'
 import { formatCurrency, formatPercentage } from '@/lib/calculations'
-import { DollarSign, TrendingUp, TrendingDown, BarChart3, Trash2, AlertTriangle, Edit2, Save, X, Square, RotateCcw, Flag } from 'lucide-react'
+import { DollarSign, TrendingUp, TrendingDown, BarChart3, Trash2, AlertTriangle, Edit2, Save, X, Flag } from 'lucide-react'
 import { format } from 'date-fns'
 import { getStockPrice } from '@/lib/stockApi'
 import { useAuth } from '@/contexts/AuthContext'
@@ -45,7 +45,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
   const [editingField, setEditingField] = useState<{ tradeId: string; field: string } | null>(null)
   const [editValue, setEditValue] = useState<string>('')
   const [currentPrices, setCurrentPrices] = useState<Record<string, number>>({})
-  const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'closed'>('all')
+  const [filterStatus, setFilterStatus] = useState<'all' | 'open'>('all')
   const [filterAccount, setFilterAccount] = useState<string>('all')
   const [filterTicker, setFilterTicker] = useState<string>('')
   const [filterOptionType, setFilterOptionType] = useState<string>('all')
@@ -63,8 +63,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
   const [filterUnrealizedPlMax, setFilterUnrealizedPlMax] = useState<string>('')
   const [filterAudited, setFilterAudited] = useState<string>('all')
   const [filterExercised, setFilterExercised] = useState<string>('all')
-  const [filterClosedDateFrom, setFilterClosedDateFrom] = useState<string>('')
-  const [filterClosedDateTo, setFilterClosedDateTo] = useState<string>('')
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false)
 
   useEffect(() => {
@@ -354,13 +352,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       filtered = filtered.filter(trade => (trade.exercised || false) === exercisedValue)
     }
 
-    if (filterClosedDateFrom) {
-      filtered = filtered.filter(trade => trade.closed_date && trade.closed_date >= filterClosedDateFrom)
-    }
-
-    if (filterClosedDateTo) {
-      filtered = filtered.filter(trade => trade.closed_date && trade.closed_date <= filterClosedDateTo)
-    }
 
     return filtered
   }
@@ -384,8 +375,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     setFilterUnrealizedPlMax('')
     setFilterAudited('all')
     setFilterExercised('all')
-    setFilterClosedDateFrom('')
-    setFilterClosedDateTo('')
   }
 
   const getActiveFilterCount = () => {
@@ -402,7 +391,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     if (filterUnrealizedPlMin || filterUnrealizedPlMax) count++
     if (filterAudited !== 'all') count++
     if (filterExercised !== 'all') count++
-    if (filterClosedDateFrom || filterClosedDateTo) count++
     return count
   }
 
@@ -534,43 +522,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     }
   }
 
-  const handleCloseTrade = async (tradeId: string) => {
-    try {
-      const today = new Date().toISOString().split('T')[0]
-      
-      const { error } = await supabase
-        .from('trades')
-        .update({ 
-          status: 'closed',
-          closed_date: today
-        })
-        .eq('id', tradeId)
-
-      if (error) throw error
-      
-      calculateStats()
-    } catch (error) {
-      alert(`Failed to close trade: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
-  }
-
-  const handleReopenTrade = async (tradeId: string) => {
-    try {
-      const { error } = await supabase
-        .from('trades')
-        .update({ 
-          status: 'open',
-          closed_date: null
-        })
-        .eq('id', tradeId)
-
-      if (error) throw error
-      
-      calculateStats()
-    } catch (error) {
-      alert(`Failed to reopen trade: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
-  }
 
   // Delete all trades function
   const deleteAllTrades = async () => {
@@ -775,123 +726,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         />
       </div>
 
-      {/* Delete All Trades Section */}
-      {stats.totalTrades > 0 && (
-        <div className="mt-6">
-          <div className="card">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
-                <h3 className="text-sm font-semibold text-red-700">Danger Zone</h3>
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <p className="text-xs text-gray-600">
-                Permanently delete all {stats.totalTrades} trades from your account. This action cannot be undone.
-              </p>
-              
-              {!showDeleteConfirm ? (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-4 rounded-md transition-colors flex items-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete All Trades
-                </button>
-              ) : (
-                <div className="space-y-2">
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-sm font-medium text-red-800 mb-1">
-                      ⚠️ Are you absolutely sure?
-                    </p>
-                    <p className="text-xs text-red-700">
-                      This will permanently delete all {stats.totalTrades} trades and cannot be undone.
-                    </p>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <button
-                      onClick={deleteAllTrades}
-                      disabled={isDeletingAll}
-                      className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm py-2 px-4 rounded-md transition-colors flex items-center gap-2"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      {isDeletingAll ? 'Deleting...' : 'Yes, Delete All Trades'}
-                    </button>
-                    
-                    <button
-                      onClick={() => setShowDeleteConfirm(false)}
-                      disabled={isDeletingAll}
-                      className="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 text-white text-sm py-2 px-4 rounded-md transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Closed Trades Section */}
-      {trades.filter(trade => trade.status === 'closed').length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Closed Trades</h2>
-          {Object.entries(
-            trades
-              .filter(trade => trade.status === 'closed')
-              .reduce((acc: Record<string, Trade[]>, trade) => {
-                const account = trade.account || 'Unnamed Account'
-                if (!acc[account]) acc[account] = []
-                acc[account].push(trade)
-                return acc
-              }, {})
-          ).map(([account, accountTrades]) => (
-            <div key={account} className="mb-6">
-              <h3 className="text-lg font-medium text-gray-700 mb-3">{account}</h3>
-              <div className="grid gap-3">
-                {accountTrades.map((trade) => (
-                  <div key={trade.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-medium text-gray-900">{trade.ticker}</span>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            trade.option_type === 'Call' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {trade.option_type}
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            ${trade.strike_price}
-                          </span>
-                        </div>
-                        <div className="text-sm text-gray-600 space-y-1">
-                          <div>Expired: {new Date(trade.expiration_date).toLocaleDateString()}</div>
-                          <div>Contracts: {trade.contracts}</div>
-                          <div>Cost: ${trade.cost}</div>
-                          <div>Date: {new Date(trade.trading_date).toLocaleDateString()}</div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className={`text-lg font-medium ${
-                          (trade.realized_pl || 0) >= 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {formatCurrency(trade.realized_pl || 0)}
-                        </div>
-                        <div className="text-sm text-gray-500">Realized P&L</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* Trade Analysis Section */}
       {trades.length > 0 && (
@@ -941,12 +776,11 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                 <label className="text-xs font-medium text-gray-700">Status</label>
                 <select
                   value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value as 'all' | 'open' | 'closed')}
+                  onChange={(e) => setFilterStatus(e.target.value as 'all' | 'open')}
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                 >
                   <option value="all">All ({trades.length})</option>
                   <option value="open">Open ({trades.filter(t => t.status === 'open').length})</option>
-                  <option value="closed">Closed ({trades.filter(t => t.status === 'closed').length})</option>
                 </select>
               </div>
               
@@ -1166,24 +1000,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </td>
                             <td className="py-3 px-4 text-sm">
                               <div className="flex items-center gap-1">
-                                {trade.status === 'open' && (
-                                  <button
-                                    onClick={() => handleCloseTrade(trade.id)}
-                                    className="text-orange-600 hover:text-orange-800 p-1"
-                                    title="Close Trade"
-                                  >
-                                    <Square className="w-4 h-4" />
-                                  </button>
-                                )}
-                                {trade.status === 'closed' && (
-                                  <button
-                                    onClick={() => handleReopenTrade(trade.id)}
-                                    className="text-green-600 hover:text-green-800 p-1"
-                                    title="Reopen Trade"
-                                  >
-                                    <RotateCcw className="w-4 h-4" />
-                                  </button>
-                                )}
                                 <button
                                   onClick={() => handleDelete(trade.id)}
                                   className="text-red-600 hover:text-red-800 p-1"
@@ -1214,6 +1030,66 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Danger Zone - Delete All Trades Section */}
+      {stats.totalTrades > 0 && (
+        <div className="mt-8">
+          <div className="card">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                <h3 className="text-sm font-semibold text-red-700">Danger Zone</h3>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-xs text-gray-600">
+                Permanently delete all {stats.totalTrades} trades from your account. This action cannot be undone.
+              </p>
+              
+              {!showDeleteConfirm ? (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white text-sm py-2 px-4 rounded-md transition-colors flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete All Trades
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-sm font-medium text-red-800 mb-1">
+                      ⚠️ Are you absolutely sure?
+                    </p>
+                    <p className="text-xs text-red-700">
+                      This will permanently delete all {stats.totalTrades} trades and cannot be undone.
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      onClick={deleteAllTrades}
+                      disabled={isDeletingAll}
+                      className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm py-2 px-4 rounded-md transition-colors flex items-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      {isDeletingAll ? 'Deleting...' : 'Yes, Delete All Trades'}
+                    </button>
+                    
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      disabled={isDeletingAll}
+                      className="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 text-white text-sm py-2 px-4 rounded-md transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
