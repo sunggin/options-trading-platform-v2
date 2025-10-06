@@ -914,48 +914,6 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
   if (trades.length === 0) {
     return (
       <div className="card">
-        {/* Debug information */}
-        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
-          <div className="font-semibold text-yellow-800 mb-1">TradesTable Debug Info:</div>
-          <div>User: {user ? `${user.email} (${user.id})` : 'Not logged in'}</div>
-          <div>Loading: {loading ? 'Yes' : 'No'}</div>
-          <div>Trades Count: {trades.length}</div>
-          <div>Refresh Trigger: {refreshTrigger}</div>
-          <button 
-            onClick={async () => {
-              if (!user) return
-
-              const { error } = await supabase
-                .from('trades')
-                .insert({
-                  user_id: user.id,
-                  ticker: 'TEST',
-                  account: 'Test Account',
-                  trading_date: new Date().toISOString().split('T')[0],
-                  option_type: 'call',
-                  expiration_date: '2024-12-20',
-                  status: 'open',
-                  contracts: 1,
-                  cost: 100,
-                  strike_price: 100,
-                  price_at_purchase: 50,
-                  audited: false,
-                  exercised: false
-                })
-              if (error) {
-
-                alert('Error: ' + error.message)
-              } else {
-
-                alert('Test trade added! Refreshing...')
-                fetchTrades()
-              }
-            }}
-            className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs"
-          >
-            Add Test Trade
-          </button>
-        </div>
         
         <div className="text-center py-8">
           <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
