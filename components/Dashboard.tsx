@@ -714,7 +714,8 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       )}
 
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+      {/* Statistics Cards - 4x2 Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <StatCard
           title="Total Trades"
           value={stats.totalTrades}
@@ -729,9 +730,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           color="blue"
           isLoading={financialDataLoading}
         />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           title="Total Cost"
           value={stats.totalCost}
@@ -760,9 +758,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           color={stats.overallProfitLoss >= 0 ? 'green' : 'red'}
           isLoading={financialDataLoading}
         />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
         <StatCard
           title="Days Trading Options"
           value={stats.daysTradingOptions}
