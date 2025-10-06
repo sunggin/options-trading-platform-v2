@@ -7,6 +7,7 @@ import { DollarSign, TrendingUp, TrendingDown, BarChart3, Trash2, AlertTriangle,
 import { format } from 'date-fns'
 import { getStockPrice } from '@/lib/stockApi'
 import { useAuth } from '@/contexts/AuthContext'
+import TradeForm from '@/components/TradeForm'
 
 interface DashboardProps {
   refreshTrigger: number
@@ -726,7 +727,15 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         />
       </div>
 
-
+      {/* Options Trading Form Section */}
+      <div className="mt-8">
+        <TradeForm onTradeAdded={() => {
+          calculateStats()
+          if (typeof window !== 'undefined' && (window as any).refreshDashboard) {
+            (window as any).refreshDashboard()
+          }
+        }} />
+      </div>
 
       {/* Trade Analysis Section */}
       {trades.length > 0 && (
