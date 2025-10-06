@@ -104,10 +104,8 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
 
   // Fast loading - basic stats that load immediately
   const calculateBasicStats = async () => {
-    console.log('Dashboard: calculateBasicStats called, user:', user)
     
     if (!user) {
-      console.log('Dashboard: No user found, setting empty stats')
       setStats({
         totalTrades: 0,
         totalRealizedGain: 0,
@@ -124,7 +122,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
 
     // Don't set loading to true - let static content show immediately
     try {
-      console.log('Dashboard: Fetching trades for user:', user.id)
       
       // Fetch all trade data for stats and display
       const { data: trades, error } = await supabase
@@ -134,18 +131,14 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         .order('trading_date', { ascending: false })
 
       if (error) {
-        console.error('Dashboard: Supabase error:', error)
         throw error
       }
 
-      console.log('Dashboard: Trades fetched successfully:', trades?.length || 0, 'trades')
-      console.log('Dashboard: Raw trades data:', trades)
 
       // Store trades for display
       setTrades(trades || [])
       const totalTrades = trades?.length || 0
       
-      console.log('Dashboard: Calculated stats - Total:', totalTrades)
 
       // Set basic stats immediately
       setStats(prev => ({
@@ -166,7 +159,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       // Now load financial data in background
       calculateFinancialStats()
     } catch (error) {
-      console.error('Error calculating basic stats:', error)
       setLoading(false)
     }
   }
@@ -224,7 +216,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         dollarsPerDay
       }))
     } catch (error) {
-      console.error('Error calculating financial stats:', error)
     } finally {
       setFinancialDataLoading(false)
     }
@@ -245,7 +236,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           const result = await getStockPrice(ticker)
           return { ticker, price: result.success ? result.data?.price || 0 : 0 }
         } catch (error) {
-          console.error(`Error fetching price for ${ticker}:`, error)
           return { ticker, price: 0 }
         }
       })
@@ -258,7 +248,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       
       setCurrentPrices(priceMap)
     } catch (error) {
-      console.error('Error fetching current prices:', error)
     }
   }
 
@@ -492,7 +481,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       setEditValue('')
       calculateStats()
     } catch (error) {
-      console.error('Error updating field:', error)
       alert(`Failed to update field: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -517,7 +505,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       if (error) throw error
       calculateStats()
     } catch (error) {
-      console.error('Error deleting trade:', error)
       alert('Failed to delete trade. Please try again.')
     }
   }
@@ -543,7 +530,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       if (error) throw error
       calculateStats()
     } catch (error) {
-      console.error(`Error updating ${field}:`, error)
       alert(`Failed to update ${field}`)
     }
   }
@@ -564,7 +550,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       
       calculateStats()
     } catch (error) {
-      console.error('Error closing trade:', error)
       alert(`Failed to close trade: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -583,7 +568,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       
       calculateStats()
     } catch (error) {
-      console.error('Error reopening trade:', error)
       alert(`Failed to reopen trade: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -604,7 +588,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         .eq('user_id', user.id)
       
       if (fetchError) {
-        console.error('Error fetching trades:', fetchError)
         alert(`Failed to fetch trades: ${fetchError.message}`)
         return
       }
@@ -617,7 +600,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
           .in('id', allTrades.map((trade: any) => trade.id))
         
         if (deleteError) {
-          console.error('Error deleting trades:', deleteError)
           alert(`Failed to delete trades: ${deleteError.message}`)
           return
         }
@@ -643,7 +625,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       alert(`Successfully deleted ${allTrades?.length || 0} trades!`)
       setShowDeleteConfirm(false)
     } catch (error) {
-      console.error('Error deleting all trades:', error)
       alert('Failed to delete all trades. Please try again.')
     } finally {
       setIsDeletingAll(false)
