@@ -79,6 +79,36 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     }
   }, [trades])
 
+  // Filter management functions (defined early for use in useEffect)
+  const saveLastUsedFilter = (filters: any) => {
+    localStorage.setItem('dashboard-last-used-filter', JSON.stringify(filters))
+  }
+
+  const loadSavedFilter = (savedFilter: {name: string, filters: any}) => {
+    const { filters } = savedFilter
+    setFilterStatus(filters.filterStatus || 'all')
+    setFilterAccount(filters.filterAccount || 'all')
+    setFilterTicker(filters.filterTicker || '')
+    setFilterOptionType(filters.filterOptionType || 'all')
+    setFilterTradingDateFrom(filters.filterTradingDateFrom || '')
+    setFilterTradingDateTo(filters.filterTradingDateTo || '')
+    setFilterExpirationDateFrom(filters.filterExpirationDateFrom || '')
+    setFilterExpirationDateTo(filters.filterExpirationDateTo || '')
+    setFilterStrikePriceMin(filters.filterStrikePriceMin || '')
+    setFilterStrikePriceMax(filters.filterStrikePriceMax || '')
+    setFilterCostMin(filters.filterCostMin || '')
+    setFilterCostMax(filters.filterCostMax || '')
+    setFilterRealizedPlMin(filters.filterRealizedPlMin || '')
+    setFilterRealizedPlMax(filters.filterRealizedPlMax || '')
+    setFilterUnrealizedPlMin(filters.filterUnrealizedPlMin || '')
+    setFilterUnrealizedPlMax(filters.filterUnrealizedPlMax || '')
+    setFilterAudited(filters.filterAudited || 'all')
+    setFilterExercised(filters.filterExercised || 'all')
+    
+    // Save as last used filter
+    saveLastUsedFilter(filters)
+  }
+
   // Load saved filters and last used filter from localStorage on component mount
   useEffect(() => {
     const saved = localStorage.getItem('dashboard-saved-filters')
@@ -499,35 +529,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     setNewFilterName('')
     setShowSaveFilterModal(false)
     alert(`Filter "${newFilterName.trim()}" saved successfully!`)
-  }
-
-  const saveLastUsedFilter = (filters: any) => {
-    localStorage.setItem('dashboard-last-used-filter', JSON.stringify(filters))
-  }
-
-  const loadSavedFilter = (savedFilter: {name: string, filters: any}) => {
-    const { filters } = savedFilter
-    setFilterStatus(filters.filterStatus || 'all')
-    setFilterAccount(filters.filterAccount || 'all')
-    setFilterTicker(filters.filterTicker || '')
-    setFilterOptionType(filters.filterOptionType || 'all')
-    setFilterTradingDateFrom(filters.filterTradingDateFrom || '')
-    setFilterTradingDateTo(filters.filterTradingDateTo || '')
-    setFilterExpirationDateFrom(filters.filterExpirationDateFrom || '')
-    setFilterExpirationDateTo(filters.filterExpirationDateTo || '')
-    setFilterStrikePriceMin(filters.filterStrikePriceMin || '')
-    setFilterStrikePriceMax(filters.filterStrikePriceMax || '')
-    setFilterCostMin(filters.filterCostMin || '')
-    setFilterCostMax(filters.filterCostMax || '')
-    setFilterRealizedPlMin(filters.filterRealizedPlMin || '')
-    setFilterRealizedPlMax(filters.filterRealizedPlMax || '')
-    setFilterUnrealizedPlMin(filters.filterUnrealizedPlMin || '')
-    setFilterUnrealizedPlMax(filters.filterUnrealizedPlMax || '')
-    setFilterAudited(filters.filterAudited || 'all')
-    setFilterExercised(filters.filterExercised || 'all')
-    
-    // Save as last used filter
-    saveLastUsedFilter(filters)
   }
 
   const deleteSavedFilter = (filterName: string) => {
