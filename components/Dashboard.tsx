@@ -81,7 +81,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     }
   }, [trades])
 
-  // Load saved filters from localStorage on component mount
+  // Load saved filters and last used filter from localStorage on component mount
   useEffect(() => {
     const saved = localStorage.getItem('dashboard-saved-filters')
     if (saved) {
@@ -91,7 +91,30 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         console.error('Error loading saved filters:', error)
       }
     }
+
+    // Load last used filter
+    const lastUsedFilter = localStorage.getItem('dashboard-last-used-filter')
+    if (lastUsedFilter) {
+      try {
+        const lastFilter = JSON.parse(lastUsedFilter)
+        loadSavedFilter({ name: 'Last Used', filters: lastFilter })
+      } catch (error) {
+        console.error('Error loading last used filter:', error)
+      }
+    }
   }, [])
+
+  // Save current filter state as last used whenever filters change
+  useEffect(() => {
+    const currentFilters = getCurrentFilters()
+    saveLastUsedFilter(currentFilters)
+  }, [
+    filterStatus, filterAccount, filterTicker, filterOptionType,
+    filterTradingDateFrom, filterTradingDateTo, filterExpirationDateFrom, filterExpirationDateTo,
+    filterStrikePriceMin, filterStrikePriceMax, filterCostMin, filterCostMax,
+    filterRealizedPlMin, filterRealizedPlMax, filterUnrealizedPlMin, filterUnrealizedPlMax,
+    filterAudited, filterExercised
+  ])
 
   // Function to calculate business days between two dates
   const calculateBusinessDays = (startDate: string, endDate: string): number => {
@@ -393,6 +416,29 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     setFilterUnrealizedPlMax('')
     setFilterAudited('all')
     setFilterExercised('all')
+    
+    // Save cleared state as last used filter
+    const clearedFilters = {
+      filterStatus: 'all',
+      filterAccount: 'all',
+      filterTicker: '',
+      filterOptionType: 'all',
+      filterTradingDateFrom: '',
+      filterTradingDateTo: '',
+      filterExpirationDateFrom: '',
+      filterExpirationDateTo: '',
+      filterStrikePriceMin: '',
+      filterStrikePriceMax: '',
+      filterCostMin: '',
+      filterCostMax: '',
+      filterRealizedPlMin: '',
+      filterRealizedPlMax: '',
+      filterUnrealizedPlMin: '',
+      filterUnrealizedPlMax: '',
+      filterAudited: 'all',
+      filterExercised: 'all'
+    }
+    saveLastUsedFilter(clearedFilters)
   }
 
   const getActiveFilterCount = () => {
@@ -457,6 +503,10 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     alert(`Filter "${newFilterName.trim()}" saved successfully!`)
   }
 
+  const saveLastUsedFilter = (filters: any) => {
+    localStorage.setItem('dashboard-last-used-filter', JSON.stringify(filters))
+  }
+
   const loadSavedFilter = (savedFilter: {name: string, filters: any}) => {
     const { filters } = savedFilter
     setFilterStatus(filters.filterStatus || 'all')
@@ -477,6 +527,9 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     setFilterUnrealizedPlMax(filters.filterUnrealizedPlMax || '')
     setFilterAudited(filters.filterAudited || 'all')
     setFilterExercised(filters.filterExercised || 'all')
+    
+    // Save as last used filter
+    saveLastUsedFilter(filters)
   }
 
   const deleteSavedFilter = (filterName: string) => {
