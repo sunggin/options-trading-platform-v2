@@ -826,14 +826,14 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     }
 
     return (
-      <div className="card p-2">
+      <div className="card p-1.5">
         <div className="flex items-center">
-          <div className={`p-1.5 rounded-full ${colorClasses[color]} ${isLoading ? 'animate-pulse' : ''}`}>
-            <Icon className="w-4 h-4" />
+          <div className={`p-1 rounded-full ${colorClasses[color]} ${isLoading ? 'animate-pulse' : ''}`}>
+            <Icon className="w-3 h-3" />
           </div>
-          <div className="ml-2">
+          <div className="ml-1.5">
             <p className="text-xs font-medium text-gray-600">{title}</p>
-            <p className={`text-sm font-semibold text-gray-900 ${isLoading ? 'animate-pulse' : ''}`}>
+            <p className={`text-xs font-semibold text-gray-900 ${isLoading ? 'animate-pulse' : ''}`}>
               {formatValue()}
             </p>
           </div>
@@ -861,7 +861,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
 
 
       {/* Statistics Cards - 4x2 Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
         <StatCard
           title="Total Trades"
           value={stats.totalTrades}
@@ -1199,7 +1199,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('account')}
                           >
                             <div className="flex items-center gap-1">
@@ -1212,7 +1212,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </div>
                           </th>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('trading_date')}
                           >
                             <div className="flex items-center gap-1">
@@ -1225,7 +1225,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </div>
                           </th>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('ticker')}
                           >
                             <div className="flex items-center gap-1">
@@ -1238,7 +1238,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </div>
                           </th>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('price_at_purchase')}
                           >
                             <div className="flex items-center gap-1">
@@ -1250,9 +1250,9 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                               )}
                             </div>
                           </th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Price Today</th>
+                          <th className="text-left py-2 px-2 text-xs font-medium text-gray-600">Price Today</th>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('option_type')}
                           >
                             <div className="flex items-center gap-1">
@@ -1265,7 +1265,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </div>
                           </th>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('contracts')}
                           >
                             <div className="flex items-center gap-1">
@@ -1278,7 +1278,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </div>
                           </th>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('strike_price')}
                           >
                             <div className="flex items-center gap-1">
@@ -1291,7 +1291,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </div>
                           </th>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('cost')}
                           >
                             <div className="flex items-center gap-1">
@@ -1304,7 +1304,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </div>
                           </th>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('expiration_date')}
                           >
                             <div className="flex items-center gap-1">
@@ -1317,7 +1317,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </div>
                           </th>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('status')}
                           >
                             <div className="flex items-center gap-1">
@@ -1330,7 +1330,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </div>
                           </th>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('realized_pl')}
                           >
                             <div className="flex items-center gap-1">
@@ -1343,7 +1343,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </div>
                           </th>
                           <th 
-                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('unrealized_pl')}
                           >
                             <div className="flex items-center gap-1">
@@ -1355,21 +1355,21 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                               )}
                             </div>
                           </th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Actions</th>
+                          <th className="text-left py-2 px-2 text-xs font-medium text-gray-600">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {allFilteredTrades.map((trade) => (
                           <tr key={trade.id} className="border-b border-gray-100 hover:bg-gray-50">
-                            <td className="py-3 px-4 text-sm">{trade.account}</td>
-                            <td className="py-3 px-4 text-sm">{format(new Date(trade.trading_date), 'MMM dd, yyyy')}</td>
-                            <td className="py-3 px-4 text-sm font-mono font-semibold text-blue-600">{trade.ticker}</td>
-                            <td className="py-3 px-4 text-sm font-mono text-gray-600">{formatCurrency(trade.price_at_purchase)}</td>
-                            <td className="py-3 px-4 text-sm font-mono text-gray-600">
+                            <td className="py-2 px-2 text-xs">{trade.account}</td>
+                            <td className="py-2 px-2 text-xs">{format(new Date(trade.trading_date), 'MMM dd, yyyy')}</td>
+                            <td className="py-2 px-2 text-xs font-mono font-semibold text-blue-600">{trade.ticker}</td>
+                            <td className="py-2 px-2 text-xs font-mono text-gray-600">{formatCurrency(trade.price_at_purchase)}</td>
+                            <td className="py-2 px-2 text-xs font-mono text-gray-600">
                               {currentPrices[trade.ticker] ? formatCurrency(currentPrices[trade.ticker]) : 'Loading...'}
                             </td>
-                            <td className="py-3 px-4 text-sm">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            <td className="py-2 px-2 text-xs">
+                              <span className={`px-1 py-0.5 rounded-full text-xs font-medium ${
                                 trade.option_type === 'Call option' ? 'bg-blue-100 text-blue-800' : 
                                 trade.option_type === 'Put option' ? 'bg-red-100 text-red-800' :
                                 trade.option_type === 'Covered call' ? 'bg-yellow-100 text-yellow-800' :
@@ -1382,38 +1382,38 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                                 {trade.option_type}
                               </span>
                             </td>
-                            <td className="py-3 px-4 text-sm">{trade.contracts}</td>
-                            <td className="py-3 px-4 text-sm font-mono">{formatCurrency(trade.strike_price)}</td>
-                            <td className="py-3 px-4 text-sm font-mono">{formatCurrency(trade.cost)}</td>
-                            <td className="py-3 px-4 text-sm">
+                            <td className="py-2 px-2 text-xs">{trade.contracts}</td>
+                            <td className="py-2 px-2 text-xs font-mono">{formatCurrency(trade.strike_price)}</td>
+                            <td className="py-2 px-2 text-xs font-mono">{formatCurrency(trade.cost)}</td>
+                            <td className="py-2 px-2 text-xs">
                               <div className="flex items-center gap-1">
                                 {format(new Date(trade.expiration_date), 'MMM dd, yyyy')}
                                 {isToday(trade.expiration_date) && (
-                                  <Flag className="w-4 h-4 text-orange-500" />
+                                  <Flag className="w-3 h-3 text-orange-500" />
                                 )}
                               </div>
                             </td>
-                            <td className="py-3 px-4 text-sm">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            <td className="py-2 px-2 text-xs">
+                              <span className={`px-1 py-0.5 rounded-full text-xs font-medium ${
                                 trade.status === 'open' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
                               }`}>
                                 {trade.status.toUpperCase()}
                               </span>
                             </td>
-                            <td className={`py-3 px-4 text-sm font-mono ${getGainLossColor(trade.realized_pl)}`}>
+                            <td className={`py-2 px-2 text-xs font-mono ${getGainLossColor(trade.realized_pl)}`}>
                               {trade.realized_pl ? formatCurrency(trade.realized_pl) : '$0.00'}
                             </td>
-                            <td className={`py-3 px-4 text-sm font-mono ${getGainLossColor(trade.unrealized_pl)}`}>
+                            <td className={`py-2 px-2 text-xs font-mono ${getGainLossColor(trade.unrealized_pl)}`}>
                               {trade.unrealized_pl ? formatCurrency(trade.unrealized_pl) : '$0.00'}
                             </td>
-                            <td className="py-3 px-4 text-sm">
+                            <td className="py-2 px-2 text-xs">
                               <div className="flex items-center gap-1">
                                 <button
                                   onClick={() => handleDelete(trade.id)}
                                   className="text-red-600 hover:text-red-800 p-1"
                                   title="Delete"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="w-3 h-3" />
                                 </button>
                               </div>
                             </td>
