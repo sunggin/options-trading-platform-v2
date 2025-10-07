@@ -42,6 +42,25 @@ export interface StockApiResponse {
 class StockApiService {
   private readonly apis = [
     {
+      name: 'Yahoo Finance Direct',
+      url: 'https://query1.finance.yahoo.com/v8/finance/chart',
+      method: 'GET'
+    },
+    {
+      name: 'Yahoo Finance CORS Proxy',
+      url: 'https://api.allorigins.win/raw',
+      params: {
+        url: 'https://query1.finance.yahoo.com/v8/finance/chart'
+      }
+    },
+    {
+      name: 'Polygon.io',
+      url: 'https://api.polygon.io/v2/aggs/ticker',
+      params: {
+        apikey: 'demo' // Free tier available
+      }
+    },
+    {
       name: 'Finnhub',
       url: 'https://finnhub.io/api/v1/quote',
       params: {
@@ -54,18 +73,6 @@ class StockApiService {
       params: {
         function: 'GLOBAL_QUOTE',
         apikey: process.env.NEXT_PUBLIC_ALPHA_VANTAGE_KEY || 'demo'
-      }
-    },
-    {
-      name: 'Yahoo Finance Direct',
-      url: 'https://query1.finance.yahoo.com/v8/finance/chart',
-      method: 'GET'
-    },
-    {
-      name: 'IEX Cloud',
-      url: 'https://cloud.iexapis.com/stable/stock',
-      params: {
-        token: 'pk_test_1234567890abcdef' // This is a test token that might work
       }
     }
   ]
@@ -108,15 +115,7 @@ class StockApiService {
     }
 
     // Handle different API endpoints
-    if (api.name === 'Alpha Vantage') {
-      config.params = {
-        ...api.params,
-        symbol: symbol.toUpperCase()
-      }
-    } else if (api.name === 'Finnhub') {
-      config.url = `${api.url}?symbol=${symbol.toUpperCase()}&token=${api.params.token}`
-      config.params = undefined
-    } else if (api.name === 'Yahoo Finance Direct') {
+    if (api.name === 'Yahoo Finance Direct') {
       config.url = `${api.url}/${symbol.toUpperCase()}`
       config.params = {
         interval: '1d',
@@ -125,11 +124,26 @@ class StockApiService {
         useYfid: 'true',
         corsDomain: 'finance.yahoo.com'
       }
-    } else if (api.name === 'IEX Cloud') {
-      config.url = `${api.url}/${symbol.toUpperCase()}/quote`
+    } else if (api.name === 'Yahoo Finance CORS Proxy') {
+      const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol.toUpperCase()}?interval=1d&range=1d&includePrePost=true&useYfid=true&corsDomain=finance.yahoo.com`
+      config.url = api.url
       config.params = {
-        token: api.params.token
+        ...api.params,
+        url: yahooUrl
       }
+    } else if (api.name === 'Polygon.io') {
+      config.url = `${api.url}/${symbol.toUpperCase()}/prev`
+      config.params = {
+        ...api.params
+      }
+    } else if (api.name === 'Alpha Vantage') {
+      config.params = {
+        ...api.params,
+        symbol: symbol.toUpperCase()
+      }
+    } else if (api.name === 'Finnhub') {
+      config.url = `${api.url}?symbol=${symbol.toUpperCase()}&token=${api.params.token}`
+      config.params = undefined
     }
 
     const response = await axios(config)
@@ -139,14 +153,15 @@ class StockApiService {
   private parseResponse(apiName: string, data: any, symbol: string): StockApiResponse {
     try {
       switch (apiName) {
+        case 'Yahoo Finance Direct':
+        case 'Yahoo Finance CORS Proxy':
+          return this.parseYahooFinanceChart(data, symbol)
+        case 'Polygon.io':
+          return this.parsePolygon(data, symbol)
         case 'Alpha Vantage':
           return this.parseAlphaVantage(data, symbol)
         case 'Finnhub':
           return this.parseFinnhub(data, symbol)
-        case 'Yahoo Finance Direct':
-          return this.parseYahooFinanceChart(data, symbol)
-        case 'IEX Cloud':
-          return this.parseIEXCloud(data, symbol)
         default:
           throw new Error('Unknown API')
       }
@@ -282,6 +297,30 @@ class StockApiService {
     throw new Error('Invalid IEX Cloud response')
   }
 
+  private parsePolygon(data: any, symbol: string): StockApiResponse {
+    if (data.results && data.results.length > 0) {
+      const result = data.results[0]
+      const currentPrice = result.c || result.close
+      const openPrice = result.o || result.open
+      const change = currentPrice - openPrice
+      const changePercent = openPrice ? (change / openPrice) * 100 : 0
+
+      return {
+        success: true,
+        data: {
+          symbol: symbol.toUpperCase(),
+          price: parseFloat(currentPrice.toString()),
+          change: parseFloat(change.toString()),
+          changePercent: parseFloat(changePercent.toString()),
+          week52High: parseFloat((result.h || currentPrice).toString()),
+          week52Low: parseFloat((result.l || currentPrice).toString()),
+          timestamp: new Date().toISOString(),
+          source: 'Polygon.io'
+        }
+      }
+    }
+    throw new Error('Invalid Polygon.io response')
+  }
 
   private getMockData(symbol: string): StockApiResponse {
     // Generate realistic mock data for development

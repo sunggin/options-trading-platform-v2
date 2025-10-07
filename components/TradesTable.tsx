@@ -5,7 +5,7 @@ import { supabase, Trade } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Edit2, Trash2, Save, X, DollarSign, TrendingUp, TrendingDown, Square, RotateCcw, Flag, ChevronDown, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
-// import { getStockPrice } from '@/lib/stockApi' // Disabled for performance
+import { getStockPrice } from '@/lib/stockApi'
 
 interface TradesTableProps {
   refreshTrigger: number
@@ -134,12 +134,11 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
     fetchTrades()
   }, [refreshTrigger])
 
-  // Disabled for performance - stock price fetching causes major slowdowns
-  // useEffect(() => {
-  //   if (trades.length > 0) {
-  //     fetchCurrentPrices()
-  //   }
-  // }, [trades])
+  useEffect(() => {
+    if (trades.length > 0) {
+      fetchCurrentPrices()
+    }
+  }, [trades])
 
   const fetchTrades = async () => {
 
@@ -174,32 +173,32 @@ export default function TradesTable({ refreshTrigger }: TradesTableProps) {
     }
   }
 
-  // Disabled for performance - stock price fetching causes major slowdowns
-  // const fetchCurrentPrices = async () => {
-  //   try {
-  //     // Get unique tickers from all trades
-  //     const uniqueTickers = Array.from(new Set(trades.map(trade => trade.ticker.toUpperCase())))
-  //     
-  //     // Fetch current prices for all unique tickers
-  //     const pricePromises = uniqueTickers.map(async (ticker) => {
-  //       try {
-  //         const result = await getStockPrice(ticker)
-  //         return { ticker, price: result.success ? result.data?.price || 0 : 0 }
-  //       } catch (error) {
-  //         return { ticker, price: 0 }
-  //       }
-  //     })
+  const fetchCurrentPrices = async () => {
+    try {
+      // Get unique tickers from all trades
+      const uniqueTickers = Array.from(new Set(trades.map(trade => trade.ticker.toUpperCase())))
+      
+      // Fetch current prices for all unique tickers with improved API
+      const pricePromises = uniqueTickers.map(async (ticker) => {
+        try {
+          const result = await getStockPrice(ticker)
+          return { ticker, price: result.success ? result.data?.price || 0 : 0 }
+        } catch (error) {
+          return { ticker, price: 0 }
+        }
+      })
 
-  //     const results = await Promise.all(pricePromises)
-  //     const priceMap: Record<string, number> = {}
-  //     results.forEach(({ ticker, price }) => {
-  //       priceMap[ticker] = price
-  //     })
-  //     
-  //     setCurrentPrices(priceMap)
-  //   } catch (error) {
-  //   }
-  // }
+      const results = await Promise.all(pricePromises)
+      const priceMap: Record<string, number> = {}
+      results.forEach(({ ticker, price }) => {
+        priceMap[ticker] = price
+      })
+      
+      setCurrentPrices(priceMap)
+    } catch (error) {
+      console.error('Error fetching current prices:', error)
+    }
+  }
 
   const handleStartEdit = (tradeId: string, field: string, currentValue: any) => {
     setEditingField({ tradeId, field })
