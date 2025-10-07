@@ -1612,6 +1612,48 @@ export default function Analysis() {
         </div>
       </div>
 
+      {/* P&L Totals for Filtered Trades */}
+      {(() => {
+        const allFilteredTrades = filteredTrades
+        
+        if (allFilteredTrades.length > 0) {
+          // Calculate totals for filtered trades
+          const totalRealizedPl = allFilteredTrades.reduce((sum, trade) => sum + (trade.realized_pl || 0), 0)
+          const totalUnrealizedPl = allFilteredTrades.reduce((sum, trade) => sum + (trade.unrealized_pl || 0), 0)
+          const totalOverallPl = totalRealizedPl + totalUnrealizedPl
+          
+          return (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3">Filtered Trade Analysis Totals</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className={`text-lg font-semibold ${totalRealizedPl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatCurrency(totalRealizedPl)}
+                  </div>
+                  <div className="text-xs text-gray-600">Total Realized P&L</div>
+                </div>
+                <div className="text-center">
+                  <div className={`text-lg font-semibold ${totalUnrealizedPl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatCurrency(totalUnrealizedPl)}
+                  </div>
+                  <div className="text-xs text-gray-600">Total Unrealized P&L</div>
+                </div>
+                <div className="text-center">
+                  <div className={`text-lg font-semibold ${totalOverallPl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatCurrency(totalOverallPl)}
+                  </div>
+                  <div className="text-xs text-gray-600">Total Overall P&L</div>
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-gray-500 text-center">
+                Based on {allFilteredTrades.length} filtered trade{allFilteredTrades.length !== 1 ? 's' : ''}
+              </div>
+            </div>
+          )
+        }
+        return null
+      })()}
+
       {/* All Trades in one continuous table */}
       {(() => {
         // Use the sorted filtered trades
