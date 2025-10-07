@@ -19,54 +19,6 @@ interface UserAccount {
   updated_at: string
 }
 
-// Generate all options expiration dates (every Friday, adjusted for holidays)
-const generateOptionsExpirationDates = () => {
-  const dates = []
-  const today = new Date()
-  const endDate = new Date(2027, 11, 31) // End of 2027
-  
-  // Major US holidays that affect options expiration (moved to Thursday before)
-  const holidays = new Set([
-    '2025-01-01', '2025-01-20', '2025-02-17', '2025-05-26', '2025-07-04', '2025-09-01', '2025-10-13', '2025-11-11', '2025-11-27', '2025-12-25',
-    '2026-01-01', '2026-01-19', '2026-02-16', '2026-05-25', '2026-07-04', '2026-09-07', '2026-10-12', '2026-11-11', '2026-11-26', '2026-12-25',
-    '2027-01-01', '2027-01-18', '2027-02-15', '2027-05-31', '2027-07-04', '2027-09-06', '2027-10-11', '2027-11-11', '2027-11-25', '2027-12-25'
-  ])
-  
-  // Start from the next Friday after today
-  const currentDate = new Date(today)
-  const daysUntilFriday = (5 - currentDate.getDay() + 7) % 7
-  const nextFriday = new Date(currentDate.getTime() + (daysUntilFriday === 0 ? 7 : daysUntilFriday) * 24 * 60 * 60 * 1000)
-  
-  let currentFriday = new Date(nextFriday)
-  
-  while (currentFriday <= endDate) {
-    const dateStr = currentFriday.toISOString().split('T')[0]
-    
-    // Check if this Friday is a holiday - if so, use Thursday instead
-    let expirationDate = currentFriday
-    if (holidays.has(dateStr)) {
-      expirationDate = new Date(currentFriday.getTime() - 24 * 60 * 60 * 1000) // Previous day (Thursday)
-    }
-    
-    const expirationDateStr = expirationDate.toISOString().split('T')[0]
-    const monthName = expirationDate.toLocaleDateString('en-US', { month: 'short' })
-    const day = expirationDate.getDate()
-    const yearShort = expirationDate.getFullYear().toString().slice(-2)
-    
-    // Add holiday indicator if applicable
-    const holidayIndicator = holidays.has(dateStr) ? ' (Holiday)' : ''
-    
-    dates.push({
-      value: expirationDateStr,
-      label: `${monthName} ${day}, ${yearShort} (${expirationDateStr})${holidayIndicator}`
-    })
-    
-    // Move to next Friday
-    currentFriday = new Date(currentFriday.getTime() + 7 * 24 * 60 * 60 * 1000)
-  }
-  
-  return dates
-}
 
 const tradeSchema = z.object({
   ticker: z.string().min(1, 'Ticker is required').max(10, 'Ticker must be 10 characters or less'),
@@ -89,13 +41,10 @@ interface TradeFormProps {
 
 export default function TradeForm({ onTradeAdded }: TradeFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [useCustomDate, setUseCustomDate] = useState(false)
   const [savedAccounts, setSavedAccounts] = useState<string[]>([])
   const [currentAccountValue, setCurrentAccountValue] = useState('')
   const { user } = useAuth()
   
-  // Generate standard options expiration dates
-  const expirationDates = generateOptionsExpirationDates()
 
   // Load saved accounts from localStorage
   useEffect(() => {
@@ -172,7 +121,6 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
   const watchedTicker = watch('ticker')
   const watchedOptionType = watch('option_type')
   const watchedAccount = watch('account')
-  const watchedExpirationDate = watch('expiration_date')
   const watchedContracts = watch('contracts')
   const watchedStrikePrice = watch('strike_price')
   const watchedCost = watch('cost')
@@ -492,57 +440,13 @@ export default function TradeForm({ onTradeAdded }: TradeFormProps) {
 
           <div>
             <label className="form-label">Expiration Date</label>
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setUseCustomDate(false)}
-                  className={`px-3 py-1 text-xs rounded ${
-                    !useCustomDate 
-                      ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                      : 'bg-gray-100 text-gray-600 border border-gray-300'
-                  }`}
-                >
-                  Standard (Weekly)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUseCustomDate(true)}
-                  className={`px-3 py-1 text-xs rounded ${
-                    useCustomDate 
-                      ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                      : 'bg-gray-100 text-gray-600 border border-gray-300'
-                  }`}
-                >
-                  Custom Date
-                </button>
-              </div>
-              
-              {!useCustomDate ? (
-                <select
-                  {...register('expiration_date')}
-                  className="input-field text-sm py-1"
-                >
-                  <option value="">Select expiration date</option>
-                  {expirationDates.map((date) => (
-                    <option key={date.value} value={date.value}>
-                      {date.label}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  {...register('expiration_date')}
-                  type="date"
-                  className="input-field text-sm py-1"
-                />
-              )}
-            </div>
+            <input
+              {...register('expiration_date')}
+              type="date"
+              className="input-field text-sm py-1"
+            />
             <p className="text-sm text-gray-500 mt-1">
-              {!useCustomDate 
-                ? 'Weekly options expiration (Fridays, adjusted for holidays)' 
-                : 'Enter any custom expiration date'
-              }
+              Enter the expiration date for your option
             </p>
             {errors.expiration_date && (
               <p className="text-red-500 text-sm mt-1">{errors.expiration_date.message}</p>
