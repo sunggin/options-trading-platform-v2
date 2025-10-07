@@ -69,6 +69,10 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
   const [showSaveFilterModal, setShowSaveFilterModal] = useState<boolean>(false)
   const [newFilterName, setNewFilterName] = useState<string>('')
 
+  // Sorting state
+  const [sortField, setSortField] = useState<string>('trading_date')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+
   useEffect(() => {
     calculateStats()
   }, [refreshTrigger])
@@ -435,7 +439,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     }
 
 
-    return filtered
+    return getSortedTrades(filtered)
   }
 
   const clearAllFilters = () => {
@@ -550,6 +554,39 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       setSavedFilters(updatedSavedFilters)
       localStorage.setItem('dashboard-saved-filters', JSON.stringify(updatedSavedFilters))
     }
+  }
+
+  // Sorting functions
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortedTrades = (tradesToSort: any[]) => {
+    return [...tradesToSort].sort((a, b) => {
+      let aValue: any = a[sortField]
+      let bValue: any = b[sortField]
+
+      // Handle different data types
+      if (sortField === 'trading_date' || sortField === 'expiration_date') {
+        aValue = new Date(aValue).getTime()
+        bValue = new Date(bValue).getTime()
+      } else if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase()
+        bValue = bValue.toLowerCase()
+      } else if (typeof aValue === 'number') {
+        aValue = aValue || 0
+        bValue = bValue || 0
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
+      return 0
+    })
   }
 
   const handleStartEdit = (tradeId: string, field: string, currentValue: any) => {
@@ -1152,21 +1189,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
 
           {/* Analysis Table */}
           {(() => {
-            const allFilteredTrades = getFilteredTrades().sort((a, b) => {
-              const accountOrder = ['SAE', 'ST', 'ST Operating', 'Robinhood']
-              const aAccountIndex = accountOrder.indexOf(a.account)
-              const bAccountIndex = accountOrder.indexOf(b.account)
-              
-              if (aAccountIndex !== bAccountIndex) {
-                return aAccountIndex - bAccountIndex
-              }
-              
-              if (a.status !== b.status) {
-                return a.status === 'open' ? -1 : 1
-              }
-              
-              return new Date(b.trading_date).getTime() - new Date(a.trading_date).getTime()
-            })
+            const allFilteredTrades = getFilteredTrades()
             
             if (allFilteredTrades.length > 0) {
               return (
@@ -1175,19 +1198,163 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Account</th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Date</th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Ticker</th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Price @ Purchase</th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('account')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Account
+                              {sortField === 'account' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('trading_date')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Date
+                              {sortField === 'trading_date' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('ticker')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Ticker
+                              {sortField === 'ticker' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('price_at_purchase')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Price @ Purchase
+                              {sortField === 'price_at_purchase' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
                           <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Price Today</th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Option Type</th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Contracts</th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Strike</th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Cost</th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Expiration</th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Status</th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Realized P&L</th>
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Unrealized P&L</th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('option_type')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Option Type
+                              {sortField === 'option_type' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('contracts')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Contracts
+                              {sortField === 'contracts' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('strike_price')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Strike
+                              {sortField === 'strike_price' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('cost')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Cost
+                              {sortField === 'cost' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('expiration_date')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Expiration
+                              {sortField === 'expiration_date' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('status')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Status
+                              {sortField === 'status' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('realized_pl')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Realized P&L
+                              {sortField === 'realized_pl' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('unrealized_pl')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Unrealized P&L
+                              {sortField === 'unrealized_pl' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
                           <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Actions</th>
                         </tr>
                       </thead>
