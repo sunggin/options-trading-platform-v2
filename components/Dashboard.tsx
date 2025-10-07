@@ -1316,6 +1316,19 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                           <th className="text-left py-2 px-2 text-xs font-medium text-gray-600">Price Today</th>
                           <th 
                             className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('strike_price')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Strike
+                              {sortField === 'strike_price' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                             onClick={() => handleSort('option_type')}
                           >
                             <div className="flex items-center gap-1">
@@ -1334,19 +1347,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             <div className="flex items-center gap-1">
                               Contracts
                               {sortField === 'contracts' && (
-                                <span className="text-blue-600">
-                                  {sortDirection === 'asc' ? '↑' : '↓'}
-                                </span>
-                              )}
-                            </div>
-                          </th>
-                          <th 
-                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
-                            onClick={() => handleSort('strike_price')}
-                          >
-                            <div className="flex items-center gap-1">
-                              Strike
-                              {sortField === 'strike_price' && (
                                 <span className="text-blue-600">
                                   {sortDirection === 'asc' ? '↑' : '↓'}
                                 </span>
@@ -1431,6 +1431,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             <td className="py-2 px-2 text-xs font-mono text-gray-600">
                               {currentPrices[trade.ticker] ? formatCurrency(currentPrices[trade.ticker]) : 'Loading...'}
                             </td>
+                            <td className="py-2 px-2 text-xs font-mono">{formatCurrency(trade.strike_price)}</td>
                             <td className="py-2 px-2 text-xs">
                               <span className={`px-1 py-0.5 rounded-full text-xs font-medium ${
                                 trade.option_type === 'Call option' ? 'bg-blue-100 text-blue-800' : 
@@ -1446,7 +1447,6 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                               </span>
                             </td>
                             <td className="py-2 px-2 text-xs">{trade.contracts}</td>
-                            <td className="py-2 px-2 text-xs font-mono">{formatCurrency(trade.strike_price)}</td>
                             <td className="py-2 px-2 text-xs font-mono">{formatCurrency(trade.cost)}</td>
                             <td className="py-2 px-2 text-xs">
                               <div className="flex items-center gap-1">

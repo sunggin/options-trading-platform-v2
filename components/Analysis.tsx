@@ -687,6 +687,29 @@ export default function Analysis() {
           </span>
         </td>
         
+        {/* Strike */}
+        <td className="py-1 px-1 text-xs">
+          {isEditingField('strike_price') ? (
+            <input
+              type="number"
+              step="0.01"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={handleSaveEdit}
+              onKeyDown={handleKeyPress}
+              className="input-field-compact w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              autoFocus
+            />
+          ) : (
+            <span 
+              className="cursor-pointer hover:bg-gray-100 px-1 py-0.5 rounded"
+              onClick={() => handleStartEdit(trade.id, 'strike_price', trade.strike_price)}
+            >
+              {formatCurrency(trade.strike_price)}
+            </span>
+          )}
+        </td>
+        
         {/* Option Type */}
         <td className="py-1 px-1 text-xs">
           {isEditingField('option_type') ? (
@@ -743,29 +766,6 @@ export default function Analysis() {
               onClick={() => handleStartEdit(trade.id, 'contracts', trade.contracts)}
             >
               {trade.contracts}
-            </span>
-          )}
-        </td>
-        
-        {/* Strike */}
-        <td className="py-1 px-1 text-xs">
-          {isEditingField('strike_price') ? (
-            <input
-              type="number"
-              step="0.01"
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onBlur={handleSaveEdit}
-              onKeyDown={handleKeyPress}
-              className="input-field-compact w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              autoFocus
-            />
-          ) : (
-            <span 
-              className="cursor-pointer hover:bg-gray-100 px-1 py-0.5 rounded"
-              onClick={() => handleStartEdit(trade.id, 'strike_price', trade.strike_price)}
-            >
-              {formatCurrency(trade.strike_price)}
             </span>
           )}
         </td>
@@ -1152,6 +1152,19 @@ export default function Analysis() {
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Price Today</th>
               <th 
                 className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('strike_price')}
+              >
+                <div className="flex items-center gap-1">
+                  Strike
+                  {sortField === 'strike_price' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
                 onClick={() => handleSort('option_type')}
               >
                 <div className="flex items-center gap-1">
@@ -1170,19 +1183,6 @@ export default function Analysis() {
                 <div className="flex items-center gap-1">
                   Contracts
                   {sortField === 'contracts' && (
-                    <span className="text-blue-600">
-                      {sortDirection === 'asc' ? '↑' : '↓'}
-                    </span>
-                  )}
-                </div>
-              </th>
-              <th 
-                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
-                onClick={() => handleSort('strike_price')}
-              >
-                <div className="flex items-center gap-1">
-                  Strike
-                  {sortField === 'strike_price' && (
                     <span className="text-blue-600">
                       {sortDirection === 'asc' ? '↑' : '↓'}
                     </span>
