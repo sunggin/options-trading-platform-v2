@@ -33,6 +33,10 @@ export default function Analysis() {
   const [filterClosedDateFrom, setFilterClosedDateFrom] = useState<string>('')
   const [filterClosedDateTo, setFilterClosedDateTo] = useState<string>('')
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false)
+
+  // Sorting state
+  const [sortField, setSortField] = useState<string>('trading_date')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   
   // Separate trades by account and status
   const getTradesByAccount = () => {
@@ -187,8 +191,41 @@ export default function Analysis() {
     return filtered
   }
 
+  // Sorting functions
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortedTrades = (tradesToSort: any[]) => {
+    return [...tradesToSort].sort((a, b) => {
+      let aValue: any = a[sortField]
+      let bValue: any = b[sortField]
+
+      // Handle different data types
+      if (sortField === 'trading_date' || sortField === 'expiration_date' || sortField === 'closed_date') {
+        aValue = new Date(aValue).getTime()
+        bValue = new Date(bValue).getTime()
+      } else if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase()
+        bValue = bValue.toLowerCase()
+      } else if (typeof aValue === 'number') {
+        aValue = aValue || 0
+        bValue = bValue || 0
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
+      return 0
+    })
+  }
+
   const tradesByAccount = getTradesByAccount()
-  const filteredTrades = getFilteredTrades()
+  const filteredTrades = getSortedTrades(getFilteredTrades())
 
   // Helper functions
   const clearAllFilters = () => {
@@ -1060,24 +1097,216 @@ export default function Analysis() {
         <table className="w-full table-fixed">
           <thead>
             <tr className="border-b border-gray-200">
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Account</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Date</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Ticker</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Price @ Purchase</th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('account')}
+              >
+                <div className="flex items-center gap-1">
+                  Account
+                  {sortField === 'account' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('trading_date')}
+              >
+                <div className="flex items-center gap-1">
+                  Date
+                  {sortField === 'trading_date' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('ticker')}
+              >
+                <div className="flex items-center gap-1">
+                  Ticker
+                  {sortField === 'ticker' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('price_at_purchase')}
+              >
+                <div className="flex items-center gap-1">
+                  Price @ Purchase
+                  {sortField === 'price_at_purchase' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Price Today</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Option Type</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Contracts</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Strike</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Cost</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Expiration Date</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Status</th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('option_type')}
+              >
+                <div className="flex items-center gap-1">
+                  Option Type
+                  {sortField === 'option_type' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('contracts')}
+              >
+                <div className="flex items-center gap-1">
+                  Contracts
+                  {sortField === 'contracts' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('strike_price')}
+              >
+                <div className="flex items-center gap-1">
+                  Strike
+                  {sortField === 'strike_price' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('cost')}
+              >
+                <div className="flex items-center gap-1">
+                  Cost
+                  {sortField === 'cost' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('expiration_date')}
+              >
+                <div className="flex items-center gap-1">
+                  Expiration Date
+                  {sortField === 'expiration_date' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('status')}
+              >
+                <div className="flex items-center gap-1">
+                  Status
+                  {sortField === 'status' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">PMCC Calc</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Realized P&L</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Unrealized P&L</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Expected Return</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Audited</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Exercised</th>
-              <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Closed Date</th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('realized_pl')}
+              >
+                <div className="flex items-center gap-1">
+                  Realized P&L
+                  {sortField === 'realized_pl' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('unrealized_pl')}
+              >
+                <div className="flex items-center gap-1">
+                  Unrealized P&L
+                  {sortField === 'unrealized_pl' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('expected_return')}
+              >
+                <div className="flex items-center gap-1">
+                  Expected Return
+                  {sortField === 'expected_return' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('audited')}
+              >
+                <div className="flex items-center gap-1">
+                  Audited
+                  {sortField === 'audited' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('exercised')}
+              >
+                <div className="flex items-center gap-1">
+                  Exercised
+                  {sortField === 'exercised' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
+              <th 
+                className="text-left py-0.5 px-1 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                onClick={() => handleSort('closed_date')}
+              >
+                <div className="flex items-center gap-1">
+                  Closed Date
+                  {sortField === 'closed_date' && (
+                    <span className="text-blue-600">
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                  )}
+                </div>
+              </th>
               <th className="text-left py-0.5 px-1 text-xs font-medium text-gray-600">Actions</th>
             </tr>
           </thead>
@@ -1385,25 +1614,8 @@ export default function Analysis() {
 
       {/* All Trades in one continuous table */}
       {(() => {
-        // Get all filtered trades and sort them by account order, then by status, then by date
-        const allFilteredTrades = filteredTrades.sort((a, b) => {
-          // First sort by account order
-          const accountOrder = ['SAE', 'ST', 'ST Operating', 'Robinhood']
-          const aAccountIndex = accountOrder.indexOf(a.account)
-          const bAccountIndex = accountOrder.indexOf(b.account)
-          
-          if (aAccountIndex !== bAccountIndex) {
-            return aAccountIndex - bAccountIndex
-          }
-          
-          // Then sort by status (open first, then closed)
-          if (a.status !== b.status) {
-            return a.status === 'open' ? -1 : 1
-          }
-          
-          // Finally sort by trading date (most recent first)
-          return new Date(b.trading_date).getTime() - new Date(a.trading_date).getTime()
-        })
+        // Use the sorted filtered trades
+        const allFilteredTrades = filteredTrades
         
         if (allFilteredTrades.length > 0) {
           return (
