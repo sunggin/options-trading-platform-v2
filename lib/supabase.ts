@@ -59,12 +59,10 @@ export interface Trade {
   strike_price: number
   price_at_purchase: number
   current_price?: number
-  realized_gain?: number
-  unrealized_gain?: number
-  // New fields
-  pmcc_calc?: number
   realized_pl?: number
   unrealized_pl?: number
+  // New fields
+  pmcc_calc?: number
   audited?: boolean
   exercised?: boolean
   priority?: boolean

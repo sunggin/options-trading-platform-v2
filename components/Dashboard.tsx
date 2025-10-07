@@ -239,6 +239,10 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
       // Use trades data we already have
       const tradesData = trades
 
+      // Debug: Log trades data to see what we're working with
+      console.log('Financial calculation - trades data:', tradesData)
+      console.log('Financial calculation - trades count:', tradesData?.length)
+
       const totalRealizedGain = tradesData?.reduce((sum: number, trade: any) => 
         sum + (trade.realized_pl || 0), 0) || 0
       
@@ -249,6 +253,12 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         sum + (trade.cost * trade.contracts), 0) || 0
       
       const overallProfitLoss = totalRealizedGain + totalUnrealizedGain
+      
+      // Debug: Log calculated values
+      console.log('Financial calculation - totalRealizedGain:', totalRealizedGain)
+      console.log('Financial calculation - totalUnrealizedGain:', totalUnrealizedGain)
+      console.log('Financial calculation - totalCost:', totalCost)
+      console.log('Financial calculation - overallProfitLoss:', overallProfitLoss)
       
       // Calculate Total $ Traded
       const totalDollarsTraded = tradesData?.reduce((sum: number, trade: any) => {
@@ -266,6 +276,9 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         
         return sum
       }, 0) || 0
+
+      // Debug: Log Total $ Traded calculation
+      console.log('Financial calculation - totalDollarsTraded:', totalDollarsTraded)
 
       // Calculate Days Trading Options and $ Per Day (simplified without start date)
       const daysTradingOptions = 0 // Simplified - no start date tracking
