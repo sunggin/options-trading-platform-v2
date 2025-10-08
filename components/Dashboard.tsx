@@ -1420,6 +1420,19 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                               )}
                             </div>
                           </th>
+                          <th 
+                            className="text-left py-2 px-2 text-xs font-medium text-gray-600 cursor-pointer hover:bg-gray-100 select-none"
+                            onClick={() => handleSort('pmcc_calc')}
+                          >
+                            <div className="flex items-center gap-1">
+                              PMCC Calc
+                              {sortField === 'pmcc_calc' && (
+                                <span className="text-blue-600">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </th>
                           <th className="text-left py-2 px-2 text-xs font-medium text-gray-600">Actions</th>
                         </tr>
                       </thead>
@@ -1470,6 +1483,9 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             </td>
                             <td className={`py-2 px-2 text-xs font-mono ${getGainLossColor(trade.unrealized_pl)}`}>
                               {trade.unrealized_pl ? formatCurrency(trade.unrealized_pl) : '$0.00'}
+                            </td>
+                            <td className="py-2 px-2 text-xs font-mono text-gray-600">
+                              {trade.pmcc_calc ? formatCurrency(trade.pmcc_calc) : 'N/A'}
                             </td>
                             <td className="py-2 px-2 text-xs">
                               <div className="flex items-center gap-1">
