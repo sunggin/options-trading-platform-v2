@@ -30,7 +30,6 @@ export default function Analysis() {
   const [filterUnrealizedPlMax, setFilterUnrealizedPlMax] = useState<string>('')
   const [filterAudited, setFilterAudited] = useState<string>('all')
   const [filterExercised, setFilterExercised] = useState<string>('all')
-  const [movesNotes, setMovesNotes] = useState<string>('')
   const [filterClosedDateFrom, setFilterClosedDateFrom] = useState<string>('')
   const [filterClosedDateTo, setFilterClosedDateTo] = useState<string>('')
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false)
@@ -284,20 +283,6 @@ export default function Analysis() {
     }
   }, [trades])
 
-  // Load saved notes from localStorage
-  useEffect(() => {
-    const savedNotes = localStorage.getItem('analysis-moves-notes')
-    if (savedNotes) {
-      setMovesNotes(savedNotes)
-    }
-  }, [])
-
-  // Save notes to localStorage when they change
-  useEffect(() => {
-    if (movesNotes !== '') {
-      localStorage.setItem('analysis-moves-notes', movesNotes)
-    }
-  }, [movesNotes])
 
   const fetchTrades = async () => {
     setLoading(true)
@@ -1691,28 +1676,6 @@ export default function Analysis() {
         }
         return null
       })()}
-
-      {/* Moves Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mt-6">
-        <h3 className="text-sm font-semibold text-gray-800 mb-3">Moves</h3>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
-              Notes
-            </label>
-            <textarea
-              value={movesNotes}
-              onChange={(e) => setMovesNotes(e.target.value)}
-              placeholder="Add your trading notes, observations, and insights here..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm resize-vertical min-h-[120px]"
-              rows={6}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Notes are automatically saved to your browser's local storage
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* Show message if no trades match filters */}
       {filteredTrades.length === 0 && trades.length > 0 && (

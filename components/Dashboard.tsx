@@ -68,6 +68,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
   const [savedFilters, setSavedFilters] = useState<Array<{name: string, filters: any}>>([])
   const [showSaveFilterModal, setShowSaveFilterModal] = useState<boolean>(false)
   const [newFilterName, setNewFilterName] = useState<string>('')
+  const [movesNotes, setMovesNotes] = useState<string>('')
 
   // Sorting state
   const [sortField, setSortField] = useState<string>('trading_date')
@@ -147,6 +148,21 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
     filterRealizedPlMin, filterRealizedPlMax, filterUnrealizedPlMin, filterUnrealizedPlMax,
     filterAudited, filterExercised
   ])
+
+  // Load saved notes from localStorage
+  useEffect(() => {
+    const savedNotes = localStorage.getItem('dashboard-moves-notes')
+    if (savedNotes) {
+      setMovesNotes(savedNotes)
+    }
+  }, [])
+
+  // Save notes to localStorage when they change
+  useEffect(() => {
+    if (movesNotes !== '') {
+      localStorage.setItem('dashboard-moves-notes', movesNotes)
+    }
+  }, [movesNotes])
 
   // Function to calculate business days between two dates
   const calculateBusinessDays = (startDate: string, endDate: string): number => {
@@ -1490,6 +1506,30 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
         </div>
       )}
 
+
+      {/* Moves Section */}
+      <div className="mt-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <h3 className="text-sm font-semibold text-gray-800 mb-3">Moves</h3>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">
+                Notes
+              </label>
+              <textarea
+                value={movesNotes}
+                onChange={(e) => setMovesNotes(e.target.value)}
+                placeholder="Add your trading notes, observations, and insights here..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm resize-vertical min-h-[120px]"
+                rows={6}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Notes are automatically saved to your browser's local storage
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Danger Zone - Delete All Trades Section */}
       {stats.totalTrades > 0 && (
