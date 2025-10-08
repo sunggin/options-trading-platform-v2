@@ -15,6 +15,10 @@ export default function WatchListPage() {
   const [newTicker, setNewTicker] = useState('')
   const [addingTicker, setAddingTicker] = useState(false)
 
+  // Sorting state
+  const [sortField, setSortField] = useState<string>('symbol')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+
   const fetchWatchListData = useCallback(async () => {
     setRefreshing(true)
     setError(null)
@@ -134,6 +138,47 @@ export default function WatchListPage() {
     return currentPrice >= historicalPrice ? 'text-green-600' : 'text-red-600'
   }
 
+  // Sorting functions
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortedWatchList = (stocksToSort: StockQuote[]) => {
+    return [...stocksToSort].sort((a, b) => {
+      let aValue: any = a[sortField as keyof StockQuote]
+      let bValue: any = b[sortField as keyof StockQuote]
+
+      // Handle different data types
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase()
+        bValue = bValue.toLowerCase()
+      } else if (typeof aValue === 'number') {
+        aValue = aValue || 0
+        bValue = bValue || 0
+      } else {
+        // Handle undefined/null values
+        if (aValue === undefined || aValue === null) aValue = 0
+        if (bValue === undefined || bValue === null) bValue = 0
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
+      return 0
+    })
+  }
+
+  const getSortIcon = (field: string) => {
+    if (sortField !== field) {
+      return <span className="text-gray-400">↕</span>
+    }
+    return sortDirection === 'asc' ? '↑' : '↓'
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-3 py-4">
@@ -217,23 +262,107 @@ export default function WatchListPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">Ticker</th>
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">Current Price</th>
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">Change</th>
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">52W Low</th>
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">52W High</th>
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">3 Days Ago</th>
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">5 Days Ago</th>
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">1 Month Ago</th>
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">200 Days Ago</th>
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">1 Year Ago</th>
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">Market Cap</th>
-                    <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">P/E Ratio</th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('symbol')}
+                    >
+                      <div className="flex items-center gap-1">
+                        Ticker {getSortIcon('symbol')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('price')}
+                    >
+                      <div className="flex items-center gap-1">
+                        Current Price {getSortIcon('price')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('change')}
+                    >
+                      <div className="flex items-center gap-1">
+                        Change {getSortIcon('change')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('week52Low')}
+                    >
+                      <div className="flex items-center gap-1">
+                        52W Low {getSortIcon('week52Low')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('week52High')}
+                    >
+                      <div className="flex items-center gap-1">
+                        52W High {getSortIcon('week52High')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('price3DaysAgo')}
+                    >
+                      <div className="flex items-center gap-1">
+                        3 Days Ago {getSortIcon('price3DaysAgo')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('price5DaysAgo')}
+                    >
+                      <div className="flex items-center gap-1">
+                        5 Days Ago {getSortIcon('price5DaysAgo')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('price1MonthAgo')}
+                    >
+                      <div className="flex items-center gap-1">
+                        1 Month Ago {getSortIcon('price1MonthAgo')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('price200DaysAgo')}
+                    >
+                      <div className="flex items-center gap-1">
+                        200 Days Ago {getSortIcon('price200DaysAgo')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('price1YearAgo')}
+                    >
+                      <div className="flex items-center gap-1">
+                        1 Year Ago {getSortIcon('price1YearAgo')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('marketCap')}
+                    >
+                      <div className="flex items-center gap-1">
+                        Market Cap {getSortIcon('marketCap')}
+                      </div>
+                    </th>
+                    <th 
+                      className="text-left py-1 px-1 text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-100 select-none"
+                      onClick={() => handleSort('peRatio')}
+                    >
+                      <div className="flex items-center gap-1">
+                        P/E Ratio {getSortIcon('peRatio')}
+                      </div>
+                    </th>
                     <th className="text-left py-1 px-1 text-xs font-medium text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {watchList.map((stock) => (
+                  {getSortedWatchList(watchList).map((stock) => (
                     <tr key={stock.symbol} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-2 px-2 text-sm font-semibold text-blue-600">{stock.symbol}</td>
                       <td className="py-2 px-2 text-sm">{formatCurrency(stock.price)}</td>
