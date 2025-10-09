@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, Trade } from '@/lib/supabase'
 import { Edit2, Trash2, Save, X, DollarSign, TrendingUp, TrendingDown, Square, RotateCcw, Flag, BarChart3 } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { getStockPrice } from '@/lib/stockApi'
 
 export default function Analysis() {
@@ -529,6 +529,17 @@ export default function Analysis() {
     return dateString === today
   }
 
+  // Helper function to parse date strings without timezone issues
+  const formatDate = (dateString: string) => {
+    try {
+      // parseISO handles ISO date strings properly without timezone conversion
+      return format(parseISO(dateString), 'MMM dd, yyyy')
+    } catch (error) {
+      console.error('Error parsing date:', dateString, error)
+      return dateString
+    }
+  }
+
   const handleToggleCheckbox = async (tradeId: string, field: 'audited' | 'exercised', value: boolean) => {
     try {
       const { error } = await supabase
@@ -646,7 +657,7 @@ export default function Analysis() {
               className="cursor-pointer hover:bg-gray-100 px-1 py-0.5 rounded"
               onClick={() => handleStartEdit(trade.id, 'trading_date', trade.trading_date)}
             >
-              {format(new Date(trade.trading_date), 'MMM dd, yyyy')}
+              {formatDate(trade.trading_date)}
             </span>
           )}
         </td>
@@ -824,7 +835,7 @@ export default function Analysis() {
                 className="cursor-pointer hover:bg-gray-100 px-1 py-0.5 rounded"
                 onClick={() => handleStartEdit(trade.id, 'expiration_date', trade.expiration_date)}
               >
-                {format(new Date(trade.expiration_date), 'MMM dd, yyyy')}
+                {formatDate(trade.expiration_date)}
               </span>
               {isToday(trade.expiration_date) && (
                 <Flag 
@@ -1027,7 +1038,7 @@ export default function Analysis() {
               className="cursor-pointer hover:bg-gray-100 px-1 py-0.5 rounded text-gray-600"
               onClick={() => handleStartEdit(trade.id, 'closed_date', trade.closed_date || '')}
             >
-              {trade.closed_date ? format(new Date(trade.closed_date), 'MMM dd, yyyy') : 'N/A'}
+              {trade.closed_date ? formatDate(trade.closed_date) : 'N/A'}
             </span>
           )}
         </td>

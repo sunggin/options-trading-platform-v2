@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase, Trade } from '@/lib/supabase'
 import { formatCurrency, formatPercentage } from '@/lib/calculations'
 import { DollarSign, TrendingUp, TrendingDown, BarChart3, Trash2, AlertTriangle, Edit2, Save, X, Flag } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { getStockPrice } from '@/lib/stockApi'
 import { useAuth } from '@/contexts/AuthContext'
 import TradeForm from '@/components/TradeForm'
@@ -717,6 +717,17 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
   const isToday = (dateString: string) => {
     const today = new Date().toISOString().split('T')[0]
     return dateString === today
+  }
+
+  // Helper function to parse date strings without timezone issues
+  const formatDate = (dateString: string) => {
+    try {
+      // parseISO handles ISO date strings properly without timezone conversion
+      return format(parseISO(dateString), 'MMM dd, yyyy')
+    } catch (error) {
+      console.error('Error parsing date:', dateString, error)
+      return dateString
+    }
   }
 
   const handleToggleCheckbox = async (tradeId: string, field: 'audited' | 'exercised', value: boolean) => {
@@ -1440,7 +1451,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                         {allFilteredTrades.map((trade) => (
                           <tr key={trade.id} className="border-b border-gray-100 hover:bg-gray-50">
                             <td className="py-2 px-2 text-xs">{trade.account}</td>
-                            <td className="py-2 px-2 text-xs">{format(new Date(trade.trading_date), 'MMM dd, yyyy')}</td>
+                            <td className="py-2 px-2 text-xs">{formatDate(trade.trading_date)}</td>
                             <td className="py-2 px-2 text-xs font-mono font-semibold text-blue-600">{trade.ticker}</td>
                             <td className="py-2 px-2 text-xs font-mono text-gray-600">{formatCurrency(trade.price_at_purchase)}</td>
                             <td className="py-2 px-2 text-xs font-mono text-gray-600">
@@ -1465,7 +1476,7 @@ export default function Dashboard({ refreshTrigger }: DashboardProps) {
                             <td className="py-2 px-2 text-xs font-mono">{formatCurrency(trade.cost)}</td>
                             <td className="py-2 px-2 text-xs">
                               <div className="flex items-center gap-1">
-                                {format(new Date(trade.expiration_date), 'MMM dd, yyyy')}
+                                {formatDate(trade.expiration_date)}
                                 {isToday(trade.expiration_date) && (
                                   <Flag className="w-3 h-3 text-orange-500" />
                                 )}
