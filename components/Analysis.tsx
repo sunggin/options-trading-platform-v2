@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase, Trade } from '@/lib/supabase'
-import { Edit2, Trash2, Save, X, DollarSign, TrendingUp, TrendingDown, Square, RotateCcw, Flag, BarChart3 } from 'lucide-react'
+import { Edit2, Trash2, Save, X, DollarSign, TrendingUp, TrendingDown, Square, RotateCcw, Flag, BarChart3, Download } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { getStockPrice } from '@/lib/stockApi'
 
@@ -538,6 +538,88 @@ export default function Analysis() {
       console.error('Error parsing date:', dateString, error)
       return dateString
     }
+  }
+
+  // Export filtered trades to CSV
+  const exportToCSV = () => {
+    const filteredTrades = getSortedTrades(getFilteredTrades())
+    
+    if (filteredTrades.length === 0) {
+      alert('No trades to export. Please adjust your filters.')
+      return
+    }
+
+    // Define CSV headers
+    const headers = [
+      'Account',
+      'Trading Date',
+      'Ticker',
+      'Price @ Purchase',
+      'Price Today',
+      'Strike Price',
+      'Option Type',
+      'Contracts',
+      'Cost',
+      'Expiration Date',
+      'Status',
+      'Realized P&L',
+      'Unrealized P&L',
+      'PMCC Calc',
+      'Expected Return',
+      'Audited',
+      'Exercised',
+      'Priority',
+      'Closed Date'
+    ]
+
+    // Convert trades to CSV rows
+    const rows = filteredTrades.map(trade => [
+      trade.account || '',
+      trade.trading_date || '',
+      trade.ticker || '',
+      trade.price_at_purchase || '',
+      currentPrices[trade.ticker] || '',
+      trade.strike_price || '',
+      trade.option_type || '',
+      trade.contracts || '',
+      trade.cost || '',
+      trade.expiration_date || '',
+      trade.status || '',
+      trade.realized_pl || '',
+      trade.unrealized_pl || '',
+      trade.pmcc_calc || '',
+      trade.expected_return || '',
+      trade.audited ? 'Yes' : 'No',
+      trade.exercised ? 'Yes' : 'No',
+      trade.priority ? 'Yes' : 'No',
+      trade.closed_date || ''
+    ])
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => {
+        // Escape cells that contain commas, quotes, or newlines
+        const cellStr = String(cell)
+        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+          return `"${cellStr.replace(/"/g, '""')}"`
+        }
+        return cellStr
+      }).join(','))
+    ].join('\n')
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    
+    link.setAttribute('href', url)
+    link.setAttribute('download', `trades_export_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const handleToggleCheckbox = async (tradeId: string, field: 'audited' | 'exercised', value: boolean) => {
@@ -1614,12 +1696,25 @@ export default function Analysis() {
         )}
 
         {/* Results Summary */}
-        <div className="text-xs text-gray-600 pt-2 border-t border-gray-100">
-          Showing {filteredTrades.length} of {trades.length} trades
-          {getActiveFilterCount() > 0 && (
-            <span className="ml-2 text-blue-600">
-              ({getActiveFilterCount()} filter{getActiveFilterCount() !== 1 ? 's' : ''} applied)
-            </span>
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <div className="text-xs text-gray-600">
+            Showing {filteredTrades.length} of {trades.length} trades
+            {getActiveFilterCount() > 0 && (
+              <span className="ml-2 text-blue-600">
+                ({getActiveFilterCount()} filter{getActiveFilterCount() !== 1 ? 's' : ''} applied)
+              </span>
+            )}
+          </div>
+          
+          {filteredTrades.length > 0 && (
+            <button
+              onClick={exportToCSV}
+              className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+              title="Export filtered trades to CSV"
+            >
+              <Download className="w-3 h-3" />
+              Export CSV
+            </button>
           )}
         </div>
       </div>
