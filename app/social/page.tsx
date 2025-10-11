@@ -246,6 +246,23 @@ export default function SocialPage() {
               </div>
             </div>
 
+            {/* Privacy Notice */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <Users className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                    🔒 Friend System Coming Soon!
+                  </h3>
+                  <p className="text-xs text-gray-600">
+                    In the future, you'll be able to send friend requests to other traders. 
+                    Only friends will see your shared trades, keeping your strategies private. 
+                    For now, shared trades are visible to all platform users.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Shared Trades Feed */}
             {sharedTrades.length === 0 ? (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
