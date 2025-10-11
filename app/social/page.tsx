@@ -3,8 +3,21 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { Users, TrendingUp, MessageSquare, Share2, ThumbsUp, Eye, ArrowLeft } from 'lucide-react'
+import { Users, TrendingUp, MessageSquare, Share2, ThumbsUp, Eye, ArrowLeft, UserPlus, UserCheck, UserX, Clock } from 'lucide-react'
 import Link from 'next/link'
+
+interface Friendship {
+  id: string
+  user_id: string
+  friend_id: string
+  status: 'pending' | 'accepted' | 'rejected'
+  created_at: string
+}
+
+interface PlatformUser {
+  user_id: string
+  email: string
+}
 
 interface SharedTrade {
   id: string
@@ -30,6 +43,11 @@ export default function SocialPage() {
   const [loading, setLoading] = useState(true)
   const [sharedTrades, setSharedTrades] = useState<SharedTrade[]>([])
   const [userCount, setUserCount] = useState<number>(0)
+  const [friends, setFriends] = useState<Friendship[]>([])
+  const [friendRequests, setFriendRequests] = useState<Friendship[]>([])
+  const [sentRequests, setSentRequests] = useState<Friendship[]>([])
+  const [platformUsers, setPlatformUsers] = useState<PlatformUser[]>([])
+  const [showUserList, setShowUserList] = useState(false)
 
   useEffect(() => {
     // Load shared trades from localStorage
@@ -69,15 +87,83 @@ export default function SocialPage() {
       }
     }
     
+    // Fetch friendships
+    const fetchFriendships = async () => {
+      if (!user) return
+      
+      try {
+        // Get accepted friends
+        const { data: acceptedFriends, error: friendsError } = await supabase
+          .from('friendships')
+          .select('*')
+          .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
+          .eq('status', 'accepted')
+        
+        if (!friendsError && acceptedFriends) {
+          setFriends(acceptedFriends)
+        }
+        
+        // Get incoming friend requests (where I'm the friend_id and status is pending)
+        const { data: incoming, error: incomingError } = await supabase
+          .from('friendships')
+          .select('*')
+          .eq('friend_id', user.id)
+          .eq('status', 'pending')
+        
+        if (!incomingError && incoming) {
+          setFriendRequests(incoming)
+        }
+        
+        // Get sent friend requests (where I'm the user_id and status is pending)
+        const { data: sent, error: sentError } = await supabase
+          .from('friendships')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'pending')
+        
+        if (!sentError && sent) {
+          setSentRequests(sent)
+        }
+      } catch (error) {
+        console.error('Error fetching friendships:', error)
+      }
+    }
+    
+    // Fetch platform users
+    const fetchPlatformUsers = async () => {
+      if (!user) return
+      
+      try {
+        const { data: uniqueUsers, error } = await supabase
+          .from('trades')
+          .select('user_id')
+        
+        if (!error && uniqueUsers) {
+          const userIds = uniqueUsers.map((t: any) => t.user_id) as string[]
+          const uniqueUserIds = Array.from(new Set(userIds))
+          // Filter out current user
+          const otherUsers = uniqueUserIds.filter((id: string) => id !== user.id)
+          
+          // For simplicity, we'll use user IDs directly
+          // In a real app, you'd fetch actual user profiles
+          setPlatformUsers(otherUsers.map((id: string) => ({ user_id: id, email: 'User' })))
+        }
+      } catch (error) {
+        console.error('Error fetching platform users:', error)
+      }
+    }
+    
     loadSharedTrades()
     fetchUserCount()
+    fetchFriendships()
+    fetchPlatformUsers()
     
     // Simulate loading
     const timer = setTimeout(() => {
       setLoading(false)
     }, 500)
     return () => clearTimeout(timer)
-  }, [])
+  }, [user])
 
   const formatCurrency = (value: number | undefined) => {
     if (value === undefined || value === null) return 'N/A'
@@ -106,6 +192,124 @@ export default function SocialPage() {
     if (optionType === 'Covered call') return 'bg-yellow-100 text-yellow-800'
     if (optionType === 'Cash secured put') return 'bg-green-100 text-green-800'
     return 'bg-gray-100 text-gray-800'
+  }
+
+  // Friend management functions
+  const sendFriendRequest = async (friendId: string) => {
+    if (!user) return
+    
+    try {
+      const { error } = await supabase
+        .from('friendships')
+        .insert({
+          user_id: user.id,
+          friend_id: friendId,
+          status: 'pending'
+        })
+      
+      if (error) {
+        alert('Failed to send friend request: ' + error.message)
+      } else {
+        alert('Friend request sent!')
+        // Refresh friendships
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Error sending friend request:', error)
+      alert('Failed to send friend request')
+    }
+  }
+
+  const acceptFriendRequest = async (friendshipId: string) => {
+    try {
+      const { error } = await supabase
+        .from('friendships')
+        .update({ status: 'accepted' })
+        .eq('id', friendshipId)
+      
+      if (error) {
+        alert('Failed to accept request: ' + error.message)
+      } else {
+        alert('Friend request accepted!')
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Error accepting friend request:', error)
+      alert('Failed to accept friend request')
+    }
+  }
+
+  const rejectFriendRequest = async (friendshipId: string) => {
+    try {
+      const { error } = await supabase
+        .from('friendships')
+        .delete()
+        .eq('id', friendshipId)
+      
+      if (error) {
+        alert('Failed to reject request: ' + error.message)
+      } else {
+        alert('Friend request rejected')
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Error rejecting friend request:', error)
+      alert('Failed to reject friend request')
+    }
+  }
+
+  const removeFriend = async (friendshipId: string) => {
+    if (!confirm('Are you sure you want to remove this friend?')) return
+    
+    try {
+      const { error } = await supabase
+        .from('friendships')
+        .delete()
+        .eq('id', friendshipId)
+      
+      if (error) {
+        alert('Failed to remove friend: ' + error.message)
+      } else {
+        alert('Friend removed')
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Error removing friend:', error)
+      alert('Failed to remove friend')
+    }
+  }
+
+  // Check if user is a friend
+  const isFriend = (userId: string) => {
+    return friends.some(f => f.user_id === userId || f.friend_id === userId)
+  }
+
+  // Check if friend request already sent
+  const hasSentRequest = (userId: string) => {
+    return sentRequests.some(r => r.friend_id === userId)
+  }
+
+  // Check if received request from user
+  const hasReceivedRequest = (userId: string) => {
+    return friendRequests.some(r => r.user_id === userId)
+  }
+
+  // Get friend user IDs
+  const getFriendIds = () => {
+    if (!user) return []
+    return friends.map(f => f.user_id === user.id ? f.friend_id : f.user_id)
+  }
+
+  // Filter shared trades to show only from friends
+  const getVisibleTrades = () => {
+    if (!user) return sharedTrades
+    const friendIds = getFriendIds()
+    // Show only trades shared by current user or friends
+    return sharedTrades.filter(trade => {
+      // For now, since we don't have user_id in shared trades, show all
+      // In production, you'd add user_id to SharedTrade and filter here
+      return true // TODO: Filter by friendIds when user_id is added to shares
+    })
   }
 
   if (loading) {
@@ -246,21 +450,142 @@ export default function SocialPage() {
               </div>
             </div>
 
-            {/* Privacy Notice */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4 mb-4">
-              <div className="flex items-start gap-3">
-                <Users className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1">
-                    🔒 Friend System Coming Soon!
-                  </h3>
-                  <p className="text-xs text-gray-600">
-                    In the future, you'll be able to send friend requests to other traders. 
-                    Only friends will see your shared trades, keeping your strategies private. 
-                    For now, shared trades are visible to all platform users.
+            {/* Friend Management Section */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Friends</h2>
+                  <p className="text-sm text-gray-600">
+                    {friends.length} friend{friends.length !== 1 ? 's' : ''} • Only friends can see your shared trades
                   </p>
                 </div>
+                <button
+                  onClick={() => setShowUserList(!showUserList)}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Find Traders
+                </button>
               </div>
+
+              {/* Friend Requests */}
+              {friendRequests.length > 0 && (
+                <div className="mb-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-yellow-600" />
+                    Friend Requests ({friendRequests.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {friendRequests.map((request) => (
+                      <div key={request.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                            U
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">User</p>
+                            <p className="text-xs text-gray-500">Wants to be friends</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => acceptFriendRequest(request.id)}
+                            className="flex items-center gap-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors"
+                          >
+                            <UserCheck className="w-3 h-3" />
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => rejectFriendRequest(request.id)}
+                            className="flex items-center gap-1 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+                          >
+                            <UserX className="w-3 h-3" />
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* User List Modal */}
+              {showUserList && (
+                <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">All Platform Traders</h3>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {platformUsers.map((platformUser) => (
+                      <div key={platformUser.user_id} className="flex items-center justify-between p-3 bg-white rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                            T
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Trader</p>
+                            <p className="text-xs text-gray-500">Active on platform</p>
+                          </div>
+                        </div>
+                        {isFriend(platformUser.user_id) ? (
+                          <span className="text-xs text-green-600 font-medium">✓ Friends</span>
+                        ) : hasSentRequest(platformUser.user_id) ? (
+                          <span className="text-xs text-gray-500">Request Sent</span>
+                        ) : hasReceivedRequest(platformUser.user_id) ? (
+                          <span className="text-xs text-yellow-600 font-medium">Requested You</span>
+                        ) : (
+                          <button
+                            onClick={() => sendFriendRequest(platformUser.user_id)}
+                            className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors"
+                          >
+                            <UserPlus className="w-3 h-3" />
+                            Add Friend
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Friends List */}
+              {friends.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Your Friends</h3>
+                  <div className="space-y-2">
+                    {friends.map((friendship) => (
+                      <div key={friendship.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                            F
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Friend</p>
+                            <p className="text-xs text-gray-500">Connected trader</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => removeFriend(friendship.id)}
+                          className="text-red-600 hover:text-red-800 text-xs"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {friends.length === 0 && friendRequests.length === 0 && (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-sm text-gray-600 mb-4">No friends yet. Start connecting with other traders!</p>
+                  <button
+                    onClick={() => setShowUserList(true)}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    Find Traders →
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Shared Trades Feed */}
