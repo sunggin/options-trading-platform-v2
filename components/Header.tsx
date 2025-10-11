@@ -64,6 +64,12 @@ export default function Header() {
               Analysis
             </Link>
             <Link 
+              href="/social"
+              className="text-base text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Social
+            </Link>
+            <Link 
               href="/profile"
               className="text-base text-gray-600 hover:text-gray-800 transition-colors"
             >
