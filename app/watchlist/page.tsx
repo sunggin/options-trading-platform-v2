@@ -180,28 +180,27 @@ export default function WatchListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-3 py-4">
-        <header className="mb-4">
-          <div className="flex items-center gap-3 mb-2">
-            <Link 
-              href="/"
-              className="text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <h1 className="text-xl font-bold text-gray-900">
-              Watch List
-            </h1>
-          </div>
-          <p className="text-sm text-gray-600">
-            Track current prices and market data for all your traded stocks
-          </p>
-        </header>
+    <div className="max-w-full mx-auto">
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="flex items-center gap-3 mb-2">
+          <Link 
+            href="/"
+            className="text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Watch List
+          </h1>
+        </div>
+        <p className="text-gray-600">
+          Track current prices and market data for all your traded stocks
+        </p>
+      </div>
 
-        {/* Add Ticker Section */}
-        <div className="card mb-4">
-          <h2 className="text-sm font-semibold mb-2">Add to Watch List</h2>
+      {/* Add Ticker Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Add to Watch List</h2>
           <form onSubmit={handleAddTicker} className="flex gap-2">
             <input
               type="text"
@@ -225,11 +224,11 @@ export default function WatchListPage() {
               {addingTicker ? 'Adding...' : 'Add'}
             </button>
           </form>
-        </div>
+      </div>
 
-        <div className="card mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-sm font-semibold">Market Data ({watchList.length} stocks)</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Market Data ({watchList.length} stocks)</h2>
             <button
               onClick={fetchWatchListData}
               disabled={refreshing}
@@ -412,7 +411,6 @@ export default function WatchListPage() {
               </table>
             </div>
           )}
-        </div>
       </div>
     </div>
   )

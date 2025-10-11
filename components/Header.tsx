@@ -25,18 +25,19 @@ export default function Header() {
   }
 
   return (
-    <header className="mb-4">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
-            Options Trading Platform
-          </h1>
-          <p className="text-base text-gray-600">
-            Buy the dip fagg*t - Warren Buffet
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
+    <header className="mb-6">
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">
+              Options Trading Platform
+            </h1>
+            <p className="text-base text-gray-600">
+              Buy the dip fagg*t - Warren Buffet
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3">
           {user && (
             <div className="flex items-center gap-2 text-base text-gray-600">
               <User className="w-4 h-4" />
@@ -87,6 +88,7 @@ export default function Header() {
               Sign Out
             </button>
           )}
+          </div>
         </div>
       </div>
     </header>

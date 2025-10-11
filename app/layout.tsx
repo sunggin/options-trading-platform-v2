@@ -16,9 +16,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 min-h-screen">
+      <body className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
         <AuthProvider>
-          <div className="container mx-auto px-1 py-4">
+          <div className="container mx-auto px-4 py-6">
             <Header />
             {children}
           </div>
