@@ -490,6 +490,13 @@ export default function Analysis() {
 
   const handleShareTrade = async (trade: Trade) => {
     try {
+      // Get current user info
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        alert('You must be logged in to share trades')
+        return
+      }
+
       // Get existing shared trades from localStorage
       const existingShares = JSON.parse(localStorage.getItem('shared_trades') || '[]')
       
@@ -497,6 +504,8 @@ export default function Analysis() {
       const sharedTrade = {
         id: `share_${Date.now()}`,
         tradeId: trade.id,
+        userId: user.id,
+        userEmail: user.email,
         ticker: trade.ticker,
         account: trade.account,
         optionType: trade.option_type,
@@ -510,7 +519,7 @@ export default function Analysis() {
         unrealizedPl: trade.unrealized_pl,
         currentPrice: currentPrices[trade.ticker],
         sharedAt: new Date().toISOString(),
-        sharedBy: 'You'
+        sharedBy: user.email?.split('@')[0] || 'Trader'
       }
       
       // Add to shared trades

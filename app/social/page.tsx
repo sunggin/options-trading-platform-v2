@@ -22,6 +22,8 @@ interface PlatformUser {
 interface SharedTrade {
   id: string
   tradeId: string
+  userId: string
+  userEmail: string
   ticker: string
   account: string
   optionType: string
@@ -306,9 +308,8 @@ export default function SocialPage() {
     const friendIds = getFriendIds()
     // Show only trades shared by current user or friends
     return sharedTrades.filter(trade => {
-      // For now, since we don't have user_id in shared trades, show all
-      // In production, you'd add user_id to SharedTrade and filter here
-      return true // TODO: Filter by friendIds when user_id is added to shares
+      // Show own trades or trades from friends
+      return trade.userId === user.id || friendIds.includes(trade.userId)
     })
   }
 
@@ -589,7 +590,7 @@ export default function SocialPage() {
             </div>
 
             {/* Shared Trades Feed */}
-            {sharedTrades.length === 0 ? (
+            {getVisibleTrades().length === 0 ? (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
                 <Share2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -606,15 +607,15 @@ export default function SocialPage() {
                 </Link>
               </div>
             ) : (
-              sharedTrades.map((trade) => (
+              getVisibleTrades().map((trade) => (
                 <div key={trade.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <div className="flex items-start gap-3 mb-4">
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                      {user?.email?.charAt(0).toUpperCase() || 'U'}
+                      {trade.sharedBy?.charAt(0).toUpperCase() || 'T'}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{user?.email?.split('@')[0] || 'Trader'}</h3>
-                      <p className="text-xs text-gray-500">{getTimeAgo(trade.sharedAt)}</p>
+                      <h3 className="font-semibold text-gray-900">{trade.sharedBy || 'Trader'}</h3>
+                      <p className="text-xs text-gray-500">{trade.userEmail || ''} • {getTimeAgo(trade.sharedAt)}</p>
                     </div>
                   </div>
 
