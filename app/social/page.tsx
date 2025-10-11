@@ -6,17 +6,80 @@ import { supabase } from '@/lib/supabase'
 import { Users, TrendingUp, MessageSquare, Share2, ThumbsUp, Eye, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
+interface SharedTrade {
+  id: string
+  tradeId: string
+  ticker: string
+  account: string
+  optionType: string
+  contracts: number
+  cost: number
+  strikePrice: number
+  expirationDate: string
+  tradingDate: string
+  status: string
+  realizedPl?: number
+  unrealizedPl?: number
+  currentPrice?: number
+  sharedAt: string
+  sharedBy: string
+}
+
 export default function SocialPage() {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
+  const [sharedTrades, setSharedTrades] = useState<SharedTrade[]>([])
 
   useEffect(() => {
+    // Load shared trades from localStorage
+    const loadSharedTrades = () => {
+      try {
+        const stored = localStorage.getItem('shared_trades')
+        if (stored) {
+          setSharedTrades(JSON.parse(stored))
+        }
+      } catch (error) {
+        console.error('Error loading shared trades:', error)
+      }
+    }
+    
+    loadSharedTrades()
+    
     // Simulate loading
     const timer = setTimeout(() => {
       setLoading(false)
     }, 500)
     return () => clearTimeout(timer)
   }, [])
+
+  const formatCurrency = (value: number | undefined) => {
+    if (value === undefined || value === null) return 'N/A'
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value)
+  }
+
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (seconds < 60) return 'Just now'
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`
+    return `${Math.floor(seconds / 86400)} days ago`
+  }
+
+  const getOptionTypeColor = (optionType: string) => {
+    if (optionType === 'Call option') return 'bg-blue-100 text-blue-800'
+    if (optionType === 'Put option') return 'bg-red-100 text-red-800'
+    if (optionType === 'Covered call') return 'bg-yellow-100 text-yellow-800'
+    if (optionType === 'Cash secured put') return 'bg-green-100 text-green-800'
+    return 'bg-gray-100 text-gray-800'
+  }
 
   if (loading) {
     return (
@@ -152,39 +215,107 @@ export default function SocialPage() {
               </div>
             </div>
 
-            {/* Sample Post Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-start gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                  JD
+            {/* Shared Trades Feed */}
+            {sharedTrades.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+                <Share2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No Shared Trades Yet
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Be the first to share your winning trades with the community!
+                </p>
+                <Link
+                  href="/analysis"
+                  className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Go to Analysis to Share Trades
+                </Link>
+              </div>
+            ) : (
+              sharedTrades.map((trade) => (
+                <div key={trade.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                      {user?.email?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{user?.email?.split('@')[0] || 'Trader'}</h3>
+                      <p className="text-xs text-gray-500">{getTimeAgo(trade.sharedAt)}</p>
+                    </div>
+                  </div>
+
+                  {/* Trade Summary */}
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-lg font-bold text-blue-600">${trade.ticker}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getOptionTypeColor(trade.optionType)}`}>
+                        {trade.optionType}
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        trade.status === 'open' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {trade.status.toUpperCase()}
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                      <div>
+                        <span className="text-gray-600">Contracts:</span>{' '}
+                        <span className="font-semibold">{trade.contracts}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Strike:</span>{' '}
+                        <span className="font-semibold">{formatCurrency(trade.strikePrice)}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Cost:</span>{' '}
+                        <span className="font-semibold">{formatCurrency(trade.cost)}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">
+                          {trade.status === 'closed' ? 'Realized' : 'Unrealized'} P&L:
+                        </span>{' '}
+                        <span className={`font-semibold ${
+                          (trade.realizedPl || trade.unrealizedPl || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {formatCurrency(trade.realizedPl || trade.unrealizedPl)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-gray-700">
+                      {trade.status === 'closed' 
+                        ? `Closed ${trade.optionType.toLowerCase()} on ${trade.ticker} for ${
+                            (trade.realizedPl || 0) >= 0 ? 'a profit' : 'a loss'
+                          } of ${formatCurrency(Math.abs(trade.realizedPl || 0))}! 📈`
+                        : `Opened ${trade.optionType.toLowerCase()} on ${trade.ticker}. Currently ${
+                            (trade.unrealizedPl || 0) >= 0 ? 'up' : 'down'
+                          } ${formatCurrency(Math.abs(trade.unrealizedPl || 0))}. 📊`
+                      }
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-sm text-gray-500 border-t border-gray-100 pt-3">
+                    <button className="flex items-center gap-1 hover:text-blue-600 transition-colors">
+                      <ThumbsUp className="w-4 h-4" />
+                      <span>Like</span>
+                    </button>
+                    <button className="flex items-center gap-1 hover:text-purple-600 transition-colors">
+                      <MessageSquare className="w-4 h-4" />
+                      <span>Comment</span>
+                    </button>
+                    <Link 
+                      href="/analysis"
+                      className="flex items-center gap-1 hover:text-green-600 transition-colors"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>View Details</span>
+                    </Link>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">John Doe</h3>
-                  <p className="text-xs text-gray-500">@johntrader • 2 hours ago</p>
-                </div>
-              </div>
-              <p className="text-gray-700 mb-4">
-                Just closed a profitable TSLA covered call! +$450 in 3 days. The key was timing the entry after the morning dip. 
-                📈 #OptionsTrading #CoveredCall
-              </p>
-              <div className="flex items-center gap-4 text-sm text-gray-500 border-t border-gray-100 pt-3">
-                <button className="flex items-center gap-1 hover:text-blue-600 transition-colors">
-                  <ThumbsUp className="w-4 h-4" />
-                  <span>24</span>
-                </button>
-                <button className="flex items-center gap-1 hover:text-purple-600 transition-colors">
-                  <MessageSquare className="w-4 h-4" />
-                  <span>8</span>
-                </button>
-                <button className="flex items-center gap-1 hover:text-green-600 transition-colors">
-                  <Share2 className="w-4 h-4" />
-                  <span>3</span>
-                </button>
-              </div>
-              <div className="mt-3 text-xs text-gray-400 italic">
-                * Sample post - Social features coming soon
-              </div>
-            </div>
+              ))
+            )}
           </div>
 
           {/* Sidebar */}

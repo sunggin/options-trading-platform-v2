@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase, Trade } from '@/lib/supabase'
-import { Edit2, Trash2, Save, X, DollarSign, TrendingUp, TrendingDown, Square, RotateCcw, Flag, BarChart3, Download } from 'lucide-react'
+import { Edit2, Trash2, Save, X, DollarSign, TrendingUp, TrendingDown, Square, RotateCcw, Flag, BarChart3, Download, Share2 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { getStockPrice } from '@/lib/stockApi'
 
@@ -485,6 +485,47 @@ export default function Analysis() {
       handleSaveEdit()
     } else if (e.key === 'Escape') {
       handleCancelEdit()
+    }
+  }
+
+  const handleShareTrade = async (trade: Trade) => {
+    try {
+      // Get existing shared trades from localStorage
+      const existingShares = JSON.parse(localStorage.getItem('shared_trades') || '[]')
+      
+      // Create share object with trade details and metadata
+      const sharedTrade = {
+        id: `share_${Date.now()}`,
+        tradeId: trade.id,
+        ticker: trade.ticker,
+        account: trade.account,
+        optionType: trade.option_type,
+        contracts: trade.contracts,
+        cost: trade.cost,
+        strikePrice: trade.strike_price,
+        expirationDate: trade.expiration_date,
+        tradingDate: trade.trading_date,
+        status: trade.status,
+        realizedPl: trade.realized_pl,
+        unrealizedPl: trade.unrealized_pl,
+        currentPrice: currentPrices[trade.ticker],
+        sharedAt: new Date().toISOString(),
+        sharedBy: 'You'
+      }
+      
+      // Add to shared trades
+      existingShares.unshift(sharedTrade) // Add to beginning
+      
+      // Keep only last 50 shares to avoid localStorage limits
+      const limitedShares = existingShares.slice(0, 50)
+      
+      // Save to localStorage
+      localStorage.setItem('shared_trades', JSON.stringify(limitedShares))
+      
+      alert(`Trade shared successfully! Check the Social page to see it.`)
+    } catch (error) {
+      console.error('Error sharing trade:', error)
+      alert('Failed to share trade. Please try again.')
     }
   }
 
@@ -1147,6 +1188,13 @@ export default function Analysis() {
                 <RotateCcw className="w-4 h-4" />
               </button>
             )}
+            <button
+              onClick={() => handleShareTrade(trade)}
+              className="text-blue-600 hover:text-blue-800 p-1"
+              title="Share to Social Feed"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
             <button
               onClick={() => handleDelete(trade.id)}
               className="text-red-600 hover:text-red-800 p-1"
