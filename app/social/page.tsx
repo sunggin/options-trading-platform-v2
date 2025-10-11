@@ -29,6 +29,7 @@ export default function SocialPage() {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [sharedTrades, setSharedTrades] = useState<SharedTrade[]>([])
+  const [userCount, setUserCount] = useState<number>(0)
 
   useEffect(() => {
     // Load shared trades from localStorage
@@ -43,7 +44,33 @@ export default function SocialPage() {
       }
     }
     
+    // Fetch real user count from database
+    const fetchUserCount = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('trades')
+          .select('user_id', { count: 'exact', head: true })
+        
+        if (!error && count !== null) {
+          // Get unique user count by querying distinct user_ids
+          const { data: uniqueUsers, error: usersError } = await supabase
+            .from('trades')
+            .select('user_id')
+          
+          if (!usersError && uniqueUsers) {
+            const uniqueUserIds = new Set(uniqueUsers.map((t: any) => t.user_id))
+            setUserCount(uniqueUserIds.size)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user count:', error)
+        // Set to 1 if error (at least the current user)
+        setUserCount(1)
+      }
+    }
+    
     loadSharedTrades()
+    fetchUserCount()
     
     // Simulate loading
     const timer = setTimeout(() => {
@@ -125,8 +152,12 @@ export default function SocialPage() {
               <Users className="w-5 h-5 text-blue-600" />
               <h3 className="text-sm font-semibold text-gray-700">Community</h3>
             </div>
-            <p className="text-2xl font-bold text-gray-900">1,234</p>
-            <p className="text-xs text-gray-500">Active Traders</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {userCount > 0 ? userCount.toLocaleString() : '...'}
+            </p>
+            <p className="text-xs text-gray-500">
+              {userCount === 1 ? 'Active Trader' : 'Active Traders'}
+            </p>
           </div>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
